@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <title>Valencia Travel Guide</title>
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -10,30 +11,18 @@
     <header>
         <h1>Discover Valencia</h1>
         <p>Explore the best places to visit in Valencia!</p>
-        <select id="filter" onchange="filterPlaces()">
-            <option value="all">All</option>
-            <option value="historical">Historical</option>
-            <option value="nature">Nature</option>
-            <option value="modern">Modern</option>
+        <label for="numRecommendations">Number of Recommendations:</label>
+        <select id="numRecommendations" onchange="handleNChange()">
+            <option value="5">5</option>
+            <option value="10" selected>10</option>
+            <option value="15">15</option>
+            <option value="20">20</option>
         </select>
+        <input type="text" id="userIdInput" placeholder="Enter your User ID">
+        <div id="greeting"></div>
     </header>
-    <main id="places">
-        <div class="place historical">
-            <h2>La Lonja de la Seda</h2>
-            <p>A UNESCO World Heritage site with stunning Gothic architecture.</p>
-        </div>
-        <div class="place nature">
-            <h2>Turia Gardens</h2>
-            <p>A beautiful park stretching across the city, perfect for a stroll.</p>
-        </div>
-        <div class="place modern">
-            <h2>City of Arts and Sciences</h2>
-            <p>An architectural marvel housing a science museum, aquarium, and more.</p>
-        </div>
-        <div class="place historical">
-            <h2>Valencia Cathedral</h2>
-            <p>Home to the Holy Grail, blending Romanesque, Gothic, and Baroque styles.</p>
-        </div>
+    <main id="places" class="places-container">
+    <div id="recommendations"></div>
     </main>
     <script src="script.js"></script>
 </body>

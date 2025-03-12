@@ -36,3 +36,29 @@ main {
 h2 {
     color: #ff5722;
 }
+
+.places-container{
+    display: flex;
+    flex-wrap: wrap;
+}
+
+#recommendations{
+    display: flex;
+    flex-wrap: wrap;
+}
+
+/* Styles for stars */
+.star {
+    font-size: 20px; /* Adjust as needed */
+    color: gray; /* Default color for empty stars */
+}
+
+.full-star {
+    color: gold; /* Color for full stars */
+}
+
+.fa {
+    color: gold; /* Color for full stars */
+    position: relative;
+}
+
