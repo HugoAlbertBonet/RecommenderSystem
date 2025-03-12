@@ -6,10 +6,18 @@ body {
     padding: 0;
 }
 
+
+
 header {
-    background: #ff5722;
-    color: white;
-    padding: 20px;
+    background-image: url('images/wallpaper3.jpg'); /* Add the background image here */
+    background-size: cover; /* Cover the entire header */
+    background-repeat: no-repeat; /* Do not repeat the image */
+    background-position: center; /* Center the image */
+    color: white; /* Adjust text color for visibility */
+    padding: 50px; /* Add some padding */
+    text-align: center; /* Center text horizontally */
+    flex-direction: column;
+    align-items: center;
 }
 
 select {
@@ -34,7 +42,7 @@ main {
 }
 
 h2 {
-    color: #ff5722;
+    color: #c43e88;
 }
 
 .places-container{
@@ -54,11 +62,11 @@ h2 {
 }
 
 .full-star {
-    color: gold; /* Color for full stars */
+    color: rgb(121, 193, 252); /* Color for full stars */
 }
 
 .fa {
-    color: gold; /* Color for full stars */
+    color: rgb(121, 193, 252); /* Color for full stars */
     position: relative;
 }
 
