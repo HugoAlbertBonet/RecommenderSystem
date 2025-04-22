@@ -56,13 +56,25 @@ def hybrid_recommender(target_user,
     Retorna una lista de tuplas (id_item, score_híbrido) ordenadas de mayor a menor.
     """
     # Obtener recomendaciones de cada sistema
-    rec_collab, collab_count = get_collaborative_recommendations(user_item_matrix, sim_matrix, target_user)
-    rec_content, content_count = get_content_recommendations(usuarios_historico, items_names,
+    if (set_weights is not None and 
+        set_weights["collaborative"] == 0) or base_weights["collaborative"] == 0:
+        rec_collab, collab_count = {}, 0
+    else:
+        rec_collab, collab_count = get_collaborative_recommendations(user_item_matrix, sim_matrix, target_user)
+    
+    if (set_weights is not None and 
+        set_weights["content"] == 0) or base_weights["content"] == 0:
+        rec_content, content_count = {}, 0
+    else:
+        rec_content, content_count = get_content_recommendations(usuarios_historico, items_names,
                                                              preferencias, padres, items_clasificacion,
                                                              target_user, N=top_n)
-    
-    #print(rec_collab, rec_content)
-    rec_demo, demo_count = get_demographic_recommendations(target_user, N=top_n)
+
+    if (set_weights is not None and 
+        set_weights["demographic"] == 0) or base_weights["demographic"] == 0:
+        rec_demo, demo_count = {}, 0
+    else:
+        rec_demo, demo_count = get_demographic_recommendations(target_user, N=top_n)
     # Calcular pesos dinámicos
     if set_weights is not None:
         dynamic_w = set_weights
