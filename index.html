@@ -11,15 +11,33 @@
     <header>
         <h1>Discover Valencia</h1>
         <p>Explore the best places to visit in Valencia!</p>
-        <label for="numRecommendations">Number of Recommendations:</label>
-        <select id="numRecommendations" onchange="handleNChange()">
-            <option value="5">5</option>
-            <option value="10" selected>10</option>
-            <option value="15">15</option>
-            <option value="20">20</option>
-        </select>
-        <input type="text" id="userIdInput" placeholder="Enter your User ID">
-        <div id="greeting"></div>
+        <div class="controls-container">
+            <div class="num-recommendations-control">
+                <label for="numRecommendations">Number of Recommendations:</label>
+                <select id="numRecommendations" onchange="handleNChange()">
+                    <option value="5">5</option>
+                    <option value="10" selected>10</option>
+                    <option value="15">15</option>
+                    <option value="20">20</option>
+                </select>
+            </div>
+            <div class="recommendation-type-group" style="margin-top: 10px; margin-bottom: 10px;"> <!-- Added a container div with some margin -->
+                <label style="display: block; margin-bottom: 5px;">Recommendation Type(s):</label> <!-- General label for the group -->
+                <div> <!-- Inner div for layout/styling -->
+                    <input type="checkbox" id="type-content" name="recommendationType" value="content" checked>
+                    <label for="type-content">Content-Based</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="type-collaborative" name="recommendationType" value="collaborative">
+                    <label for="type-collaborative">Collaborative Filtering</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="type-demographic" name="recommendationType" value="demographic">
+                    <label for="type-demographic">Demographic</label>
+                </div>
+            </div>
+            <input type="text" id="userIdInput" placeholder="Enter your User ID">
+            <div id="greeting"></div>
     </header>
     <main id="places" class="places-container">
     <div id="recommendations"></div>

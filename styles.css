@@ -1,72 +1,155 @@
+/* styles.css */
+
 body {
     font-family: Arial, sans-serif;
-    text-align: center;
+    /* text-align: center; */ /* Remove or comment out if you don't want ALL text centered */
     background-color: #f4f4f4;
     margin: 0;
     padding: 0;
 }
 
+/* Container for the side-by-side controls */
+.controls-container {
+    display: flex;          /* Enable Flexbox */
+    align-items: flex-start; /* Align items to the top */
+    gap: 20px;              /* Add space between the two control groups */
+    /* margin-top: 15px; */    /* Remove - let header gap/padding handle */
+    /* margin-bottom: 15px; */ /* Remove - let header gap/padding handle */
+    flex-wrap: wrap;        /* Allow items to wrap */
+    justify-content: center; /* Center items *within* this container if they wrap */
+    width: fit-content;     /* Prevent stretching unnecessarily */
+}
 
+/* Style for the number of recommendations group */
+.num-recommendations-control {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* Align label/select left */
+}
+
+/* Style for the recommendation type checkbox group */
+.recommendation-type-group {
+    text-align: left; /* Align checkbox labels left */
+}
+
+/* Style for the main label of the checkbox group */
+.recommendation-type-group > label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    text-align: left; /* Align label text left */
+}
+
+/* Optional: Add some margin below each checkbox line */
+.recommendation-type-group div {
+    margin-bottom: 3px;
+    text-align: left; /* Align checkbox + label text left */
+}
+
+/* Add some spacing below the user ID input */
+#userIdInput {
+    margin-top: 10px; /* Keep or adjust as needed */
+    margin-bottom: 5px; /* Keep or adjust as needed */
+    /* Consider adding width/max-width */
+    /* width: 200px; */
+}
 
 header {
-    background-image: url('images/wallpaper3.jpg'); /* Add the background image here */
-    background-size: cover; /* Cover the entire header */
-    background-repeat: no-repeat; /* Do not repeat the image */
-    background-position: center; /* Center the image */
-    color: white; /* Adjust text color for visibility */
-    padding: 50px; /* Add some padding */
-    text-align: center; /* Center text horizontally */
-    flex-direction: column;
-    align-items: center;
+    background-image: url('images/wallpaper3.jpg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    color: white;
+    padding: 30px 20px; /* Adjust padding */
+    text-align: center; /* Center inline text like h1, p */
+
+    /* --- Flexbox for centering children --- */
+    display: flex;             /* <<< ADD THIS LINE */
+    flex-direction: column;    /* Stack children vertically */
+    align-items: center;       /* Center children horizontally */
+    gap: 15px;                 /* Add space BETWEEN header children */
 }
 
 select {
-    margin: 10px;
+    /* margin: 10px; */ /* Remove margin if header gap handles spacing */
     padding: 5px;
 }
 
 main {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+    /* display: flex; */ /* Let children containers handle flex */
+    /* flex-wrap: wrap; */
+    /* justify-content: center; */
     margin-top: 20px;
+    padding: 0 10px; /* Add horizontal padding */
 }
 
 .place {
     background: white;
     padding: 20px;
-    margin: 10px;
-    width: 300px;
+    margin: 10px; /* Keep margin for spacing between cards */
+    width: 300px; /* Fixed width */
     border-radius: 8px;
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: left; /* Align text inside card left */
 }
 
 h2 {
     color: #c43e88;
+    margin-top: 0; /* Remove default top margin */
 }
 
+/* Use this container if you have other general places */
 .places-container{
     display: flex;
     flex-wrap: wrap;
+    justify-content: center; /* Center the place cards */
+    gap: 10px; /* Add gap between place cards */
 }
 
+/* Use this specifically for the recommendations output area */
 #recommendations{
     display: flex;
     flex-wrap: wrap;
+    justify-content: center; /* Center the recommendation cards */
+    gap: 10px; /* Add gap between recommendation cards */
+    width: 100%; /* Ensure it takes available width */
 }
 
 /* Styles for stars */
 .star {
-    font-size: 20px; /* Adjust as needed */
-    color: gray; /* Default color for empty stars */
+    font-size: 20px;
+    color: gray;
 }
 
 .full-star {
-    color: rgb(121, 193, 252); /* Color for full stars */
+    color: rgb(121, 193, 252);
 }
 
+/* Assuming .fa is for Font Awesome icons used as stars */
 .fa {
-    color: rgb(121, 193, 252); /* Color for full stars */
-    position: relative;
+    color: rgb(121, 193, 252);
+    /* position: relative; */ /* Usually not needed */
 }
+
+/* Style the button */
+button {
+    padding: 8px 15px;
+    background-color: #c43e88; /* Example color */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    /* margin-top: 5px; */ /* Let header gap handle spacing */
+}
+
+button:hover {
+    background-color: #a1326f; /* Darker shade on hover */
+}
+
+/* Style the greeting div */
+#greeting {
+    /* margin-top: 10px; */ /* Let header gap handle spacing */
+    font-weight: bold;
+}
+
 

@@ -99,6 +99,36 @@ function displayRecommendations(recommendations) {
 }
 
 async function getRecommendations(userId) {
+    // **** START: Get selected recommendation types from CHECKBOXES ****
+
+    // 1. Select all checkboxes belonging to the group using their shared 'name' attribute.
+    //    We specifically select only the ones that are currently ':checked'.
+    const typeCheckboxes = document.querySelectorAll('input[name="recommendationType"]:checked');
+
+    // 2. Create an array to store the *values* of the checked boxes.
+    //    We iterate through the NodeList returned by querySelectorAll.
+    //    For each checked checkbox found, we get its 'value' attribute (e.g., "content", "collaborative").
+    const selectedTypes = Array.from(typeCheckboxes).map(checkbox => checkbox.value);
+    console.log(selectedTypes);
+
+    // Now, the 'selectedTypes' variable holds an array of strings,
+    // like: ['content'], or ['content', 'demographic'], or ['collaborative'], or [] if none are checked.
+
+    // **** END: Get selected recommendation types from CHECKBOXES ****
+
+    // Optional: Handle case where no type is selected
+    if (selectedTypes.length === 0) {
+        // You could default to one type, show a message, or let the backend handle it
+        console.warn("No recommendation type selected. Sending empty array or defaulting.");
+        // Example: Default to 'content' if none selected
+        // selectedTypes.push('content');
+        // Or display a message to the user:
+        // document.getElementById('greeting').textContent = "Please select at least one recommendation type.";
+        // return; // Stop the function if selection is required
+    }
+
+
+
     if (userId != "") {
         try {
             const response = await fetch("http://127.0.0.1:5000/recommendations", {
@@ -106,7 +136,11 @@ async function getRecommendations(userId) {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ userId: userId, num_recommendations: N }), // Send N to the backend
+                body: JSON.stringify({ 
+                    userId: userId, 
+                    num_recommendations: N,
+                    recommendation_types: selectedTypes,
+                }), 
             });
 
             if (!response.ok) {
