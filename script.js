@@ -45,7 +45,7 @@ function handleUserIdInput() {
 }
 function createStarRating(similarity) {
     const maxStars = 5;
-    const numStars = Math.min(maxStars*2, Math.floor(similarity * 20))/2; // Scale to 0-10 and round
+    const numStars = Math.min(maxStars*2, Math.floor(similarity * 10))/2; // Scale to 0-10 and round
     const fullStars = Math.floor(numStars); // Number of full stars
     console.log(fullStars)
     const hasHalfStar = (numStars%1>0); // Check for a half star
@@ -75,7 +75,7 @@ function createPlaceElement(itemName, similarity) {
     placeDiv.appendChild(h2);
 
     const p = document.createElement("p");
-    p.textContent = `Similarity: ${similarity.toFixed(2)}`;
+    p.textContent = `Similarity: ${similarity.toFixed(3)}`;
     placeDiv.appendChild(p);
 
     const starRating = createStarRating(similarity);
