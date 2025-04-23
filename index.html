@@ -6,42 +6,223 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <title>Valencia Travel Guide</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        /* --- Login/Register Screen Styles --- */
+        #login-screen {
+            display: flex; /* Use flexbox for centering */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; /* Full viewport height */
+            padding: 20px;
+            box-sizing: border-box; /* Include padding in height/width */
+            background-color: #f4f4f4; /* Light background */
+        }
+
+        /* Common form container style */
+        .form-container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 100%; /* Take full width of parent */
+            max-width: 400px; /* Max width for the form */
+            box-sizing: border-box;
+        }
+
+        .form-container h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .form-container label {
+            display: block;
+            margin-bottom: 5px;
+            text-align: left;
+            color: #555;
+            font-weight: bold;
+        }
+        .form-container input[type="text"],
+        .form-container input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box; /* Include padding in width */
+        }
+        .form-container button {
+            background-color: #5cb85c; /* Green */
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+            width: 100%; /* Make button full width */
+            margin-bottom: 15px; /* Space below button */
+        }
+        .form-container button:hover {
+            background-color: #4cae4c;
+        }
+
+        /* Error/Message styling */
+        .form-message {
+            color: red;
+            margin-top: 15px;
+            min-height: 1em; /* Reserve space */
+            font-size: 0.9em;
+        }
+        .form-message.success {
+             color: green;
+        }
+
+        /* Toggle links */
+        .toggle-link {
+            display: block;
+            margin-top: 15px;
+            color: #007bff;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.9em;
+        }
+        .toggle-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Initially hide register form and main app */
+        #register-form,
+        #main-app-content {
+            display: none;
+        }
+        /* --- End Login/Register Styles --- */
+
+    </style>
 </head>
 <body>
-    <header>
-        <h1>Discover Valencia</h1>
-        <p>Explore the best places to visit in Valencia!</p>
-        <div class="controls-container">
-            <div class="num-recommendations-control">
-                <label for="numRecommendations">Number of Recommendations:</label>
-                <select id="numRecommendations" onchange="handleNChange()">
-                    <option value="5">5</option>
-                    <option value="10" selected>10</option>
-                    <option value="15">15</option>
-                    <option value="20">20</option>
-                </select>
+
+    <!-- Login/Register Screen -->
+    <div id="login-screen">
+
+        <!-- Login Form -->
+        <div id="login-form" class="form-container">
+            <h2>Login</h2>
+            <div>
+                <label for="loginUserId">User ID:</label>
+                <input type="text" id="loginUserId" placeholder="Ingresa tu ID de usuario" required>
             </div>
-            <div class="recommendation-type-group" style="margin-top: 10px; margin-bottom: 10px;"> <!-- Added a container div with some margin -->
-                <label style="display: block; margin-bottom: 5px;">Recommendation Type(s):</label> <!-- General label for the group -->
-                <div> <!-- Inner div for layout/styling -->
-                    <input type="checkbox" id="type-content" name="recommendationType" value="content" checked>
-                    <label for="type-content">Content-Based</label>
-                </div>
-                <div>
-                    <input type="checkbox" id="type-collaborative" name="recommendationType" value="collaborative">
-                    <label for="type-collaborative">Collaborative Filtering</label>
-                </div>
-                <div>
-                    <input type="checkbox" id="type-demographic" name="recommendationType" value="demographic">
-                    <label for="type-demographic">Demographic</label>
-                </div>
+            <div>
+                <label for="loginPassword">Password:</label>
+                <input type="password" id="loginPassword" placeholder="Ingresa tu contraseña" required>
             </div>
-            <input type="text" id="userIdInput" placeholder="Enter your User ID">
+            <button id="loginButton">Login</button>
+            <p id="login-error" class="form-message"></p>
+            <a href="#" id="show-register-link" class="toggle-link">¿Todavía no tienes una cuenta? Regístrate</a>
+        </div>
+
+        <!-- Registration Form (Initially Hidden) -->
+        <div id="register-form" class="form-container">
+            <h2>Registrar una cuenta nueva</h2>
+            <div>
+                <label for="registerUserId">User ID:</label>
+                <input type="text" id="registerUserId" placeholder="Elige un ID de usuario" required>
+            </div>
+            <div>
+                <label for="registerName">Name:</label>
+                <input type="text" id="registerName" placeholder="Ingresa tu nombre" required>
+            </div>
+            <div>
+                <label for="registerAge">Age:</label>
+                <input type="text" id="registerAge" placeholder="Ingresa tu edad" required>
+            </div>
+            <div>
+                <label for="registerGender">Gender:</label>
+                <input type="text" id="registerGender" placeholder="Ingresa tu género (M o F)" required>
+            </div>
+            <div>
+                <label for="registerJob">Job:</label>
+                <p>1;Fuerzas armadas</p>
+                <p>2;Dirección de las empresas y de las administraciones públicas</p>
+                <p>3;Técnicos y profesionales científicos e intelectuales</p>
+                <p>4;Técnicos y profesionales de apoyo</p>
+                <p>5;Empleados de tipo administrativo</p>
+                <p>6;Trabajadores de los servicios de restauración, personales, protección y vendedores de los comercios</p>
+                <p>7;Trabajadores cualificados en la agricultura y en la pesca</p>
+                <p>8;Artesanos y trabajadores cualificados de industrias manufactureras, construcción, y minería, excepto operadores de instalaciones y maquinaria</p>
+                <p>9;Operadores de instalaciones y maquinaria, y montadores</p>
+                <p>10;Trabajadores no cualificados</p>
+                <p>11;Inactivo o desocupado</p>
+                <input type="text" id="registerJob" placeholder="Ingresa el código de tu ocupación" required>
+            </div>
+            <div>
+                <label for="registerChildren">Children:</label>
+                <input type="text" id="registerChildren" placeholder="¿Tienes hijos? (1:sí, 0:no)" required>
+            </div>
+            <div>
+                <label for="registerChildrenOld">Oldest:</label>
+                <input type="text" id="registerChildrenOld" placeholder="Ingresa la edad del más mayor">
+            </div>
+            <div>
+                <label for="registerChildrenYoung">Youngest:</label>
+                <input type="text" id="registerChildrenYoung" placeholder="Ingresa la edad del más pequeño">
+            </div>
+            <div>
+                <label for="registerPassword">Password:</label>
+                <input type="password" id="registerPassword" placeholder="Choose a password" required>
+            </div>
+            <div>
+                <label for="registerConfirmPassword">Confirm Password:</label>
+                <input type="password" id="registerConfirmPassword" placeholder="Confirm your password" required>
+            </div>
+            <button id="registerButton">Register</button>
+            <p id="register-message" class="form-message"></p>
+            <a href="#" id="show-login-link" class="toggle-link">Already have an account? Login</a>
+        </div>
+
+    </div> <!-- End of login-screen -->
+
+
+    <!-- Main Application Content (Initially Hidden) -->
+    <div id="main-app-content">
+        <header>
+            <h1>Discover Valencia</h1>
+            <p>Explore the best places to visit in Valencia!</p>
             <div id="greeting"></div>
-    </header>
-    <main id="places" class="places-container">
-    <div id="recommendations"></div>
-    </main>
+            <div class="controls-container">
+                <div class="num-recommendations-control">
+                    <label for="numRecommendations">Number of Recommendations:</label>
+                    <select id="numRecommendations" onchange="handleNChange()">
+                        <option value="5">5</option>
+                        <option value="10" selected>10</option>
+                        <option value="15">15</option>
+                        <option value="20">20</option>
+                    </select>
+                </div>
+                <div class="recommendation-type-group" style="margin-top: 10px; margin-bottom: 10px;">
+                    <label style="display: block; margin-bottom: 5px;">Recommendation Type(s):</label>
+                    <div>
+                        <input type="checkbox" id="type-content" name="recommendationType" value="content" checked>
+                        <label for="type-content">Content-Based</label>
+                    </div>
+                    <div>
+                        <input type="checkbox" id="type-collaborative" name="recommendationType" value="collaborative">
+                        <label for="type-collaborative">Collaborative Filtering</label>
+                    </div>
+                    <div>
+                        <input type="checkbox" id="type-demographic" name="recommendationType" value="demographic">
+                        <label for="type-demographic">Demographic</label>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <main id="places" class="places-container">
+            <div id="recommendations"></div>
+        </main>
+    </div> <!-- End of main-app-content -->
+
     <script src="script.js"></script>
 </body>
 </html>
+

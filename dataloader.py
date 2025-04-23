@@ -1,4 +1,5 @@
 import pandas as pd
+import json
 
 # =============================================================================
 # FUNCIONES DE CARGA DE DATOS
@@ -29,3 +30,41 @@ def load_data(root = "data"):
     items_clasificacion.columns = ['id_item', 'id_preferencia', 'score']
     
     return usuarios_historico, items_names, preferencias, padres, items_clasificacion
+
+
+def add_user_password(userid, password):
+    with open("data/credentials.json", "r") as file:
+        credentials = json.load(file)
+    if userid in credentials:
+        return 0
+    credentials[userid] = password
+    with open("data/credentials.json", "w") as file:
+        json.dump(credentials, file)
+    return 1
+
+def add_user_data(userid, 
+                  user_name, 
+                  userAge, 
+                  userGender, 
+                  userJob, 
+                  userChildren, 
+                  userChildrenOld, 
+                  userChildrenYoung):
+  file = pd.read_csv("data/usuarios_datos_personales.csv", sep=";", header=None)
+  new_user = [
+      userid,
+      user_name,
+      userAge,
+      userGender,
+      userJob,
+      userChildren,
+      userChildrenOld,
+      userChildrenYoung
+  ]
+
+  # Add a single row using the append() method
+  try:
+    file.loc[len(file)] = new_user
+    return 1
+  except:
+      return 0
