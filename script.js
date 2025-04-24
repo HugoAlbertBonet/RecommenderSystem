@@ -1,18 +1,21 @@
+// Wait for the DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', () => {
-    // --- Get DOM Elements ---
-    const loginScreen = document.getElementById('login-screen');
-    const mainAppContent = document.getElementById('main-app-content');
+    // Define API URL at the top for consistency
+    const API_URL = 'http://localhost:5000'; // Ensure this is correct
 
-    // Login Form Elements
+    // --- Get DOM Elements ---
+    // (Keep all existing element references)
+    const loginScreen = document.getElementById('login-screen');
     const loginForm = document.getElementById('login-form');
+    const individualRegisterForm = document.getElementById('individual-register-form');
+    const groupRegisterForm = document.getElementById('group-register-form');
+    const mainAppContent = document.getElementById('main-app-content');
     const loginUserIdInput = document.getElementById('loginUserId');
     const loginPasswordInput = document.getElementById('loginPassword');
     const loginButton = document.getElementById('loginButton');
     const loginError = document.getElementById('login-error');
-    const showRegisterLink = document.getElementById('show-register-link');
-
-    // Register Form Elements
-    const registerForm = document.getElementById('register-form');
+    const showIndividualRegisterLink = document.getElementById('show-individual-register-link');
+    const showGroupRegisterLink = document.getElementById('show-group-register-link');
     const registerUserIdInput = document.getElementById('registerUserId');
     const registerNameInput = document.getElementById('registerName');
     const registerAgeInput = document.getElementById('registerAge');
@@ -25,72 +28,161 @@ document.addEventListener('DOMContentLoaded', () => {
     const registerConfirmPasswordInput = document.getElementById('registerConfirmPassword');
     const registerButton = document.getElementById('registerButton');
     const registerMessage = document.getElementById('register-message');
-    const showLoginLink = document.getElementById('show-login-link');
-
-    // Main App Elements
+    const showLoginLinkFromIndividual = document.getElementById('show-login-link-from-individual');
+    const groupRegisterNameInput = document.getElementById('groupRegisterName');
+    const groupMembersSelect = document.getElementById('groupMembersSelect');
+    const groupMembersLoadingError = document.getElementById('group-members-loading-error');
+    const groupRegisterButton = document.getElementById('groupRegisterButton');
+    const groupRegisterMessage = document.getElementById('group-register-message');
+    const showLoginLinkFromGroup = document.getElementById('show-login-link-from-group');
     const greetingDiv = document.getElementById('greeting');
     const recommendationsDiv = document.getElementById('recommendations');
     const numRecommendationsSelect = document.getElementById('numRecommendations');
-    const recommendationCheckboxes = document.querySelectorAll('input[name="recommendationType"]');
-    const titleElement = document.querySelector("header h1"); // For fetchTitle
+    const recommendationTypeCheckboxes = document.querySelectorAll('input[name="recommendationType"]');
 
-    // --- Global State ---
-    let N = parseInt(numRecommendationsSelect.value); // Initialize N
-    let currentUserId = null; // Logged-in user ID
+    // --- State Variables ---
+    let N = parseInt(numRecommendationsSelect.value);
+    let group_recommendations_flag = false;
+    let currentUserId = null;
+    let groupData = null;
 
-    // --- Event Listeners ---
-
-    // Login/Register Toggles
-    showRegisterLink.addEventListener('click', (e) => {
-        e.preventDefault(); // Prevent default link behavior
-        showRegisterForm();
-    });
-
-    showLoginLink.addEventListener('click', (e) => {
-        e.preventDefault(); // Prevent default link behavior
-        showLoginForm();
-    });
-
-    // Form Submissions
-    loginButton.addEventListener('click', handleLogin);
-    registerButton.addEventListener('click', handleRegister);
-
-    // Enter Key Listeners
-    loginPasswordInput.addEventListener('keyup', function(event) {
-        if (event.key === "Enter") handleLogin();
-    });
-    registerConfirmPasswordInput.addEventListener('keyup', function(event) {
-        if (event.key === "Enter") handleRegister();
-    });
-    // Optional: Add Enter listener to other register fields if desired
-
-    // Recommendation Controls Listeners
     numRecommendationsSelect.addEventListener('change', handleNChange);
-    recommendationCheckboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', handleRecommendationTypeChange);
-    });
 
-    // Fetch title on initial load
-    fetchTitle();
-
-    // --- View Toggle Functions ---
+    // --- Helper Functions ---
 
     function showLoginForm() {
-        registerForm.style.display = 'none';
         loginForm.style.display = 'block';
-        loginError.textContent = ''; // Clear any previous login errors
-        registerMessage.textContent = ''; // Clear any register messages
+        individualRegisterForm.style.display = 'none';
+        groupRegisterForm.style.display = 'none';
+        mainAppContent.style.display = 'none';
+        loginScreen.style.display = 'flex';
+        clearMessages();
     }
 
-    function showRegisterForm() {
+    function showIndividualRegisterForm() {
         loginForm.style.display = 'none';
-        registerForm.style.display = 'block';
-        loginError.textContent = ''; // Clear any login errors
-        registerMessage.textContent = ''; // Clear any previous register messages
+        individualRegisterForm.style.display = 'block';
+        groupRegisterForm.style.display = 'none';
+        mainAppContent.style.display = 'none';
+        loginScreen.style.display = 'flex';
+        clearMessages();
     }
 
+    async function showGroupRegisterForm() {
+        console.log("Attempting to show group registration form...");
+        loginForm.style.display = 'none';
+        individualRegisterForm.style.display = 'none';
+        groupRegisterForm.style.display = 'block';
+        mainAppContent.style.display = 'none';
+        loginScreen.style.display = 'flex';
+        clearMessages();
+        groupMembersLoadingError.style.display = 'none';
+        groupMembersSelect.innerHTML = '<option value="" disabled>Loading available users...</option>';
+        groupMembersSelect.disabled = true; // Explicitly disable select while loading
+        groupRegisterButton.disabled = true;
+        console.log("Group form shown, select disabled, button disabled. Fetching users...");
 
-    // --- Authentication Functions ---
+        try {
+            const users = await fetchIndividualUsers();
+            console.log("Users fetched successfully:", users);
+            populateUserDropdown(users);
+            // Enable button ONLY if users were loaded successfully AND there are users to select
+            groupRegisterButton.disabled = !users || users.length === 0;
+            console.log(`Group register button disabled state: ${groupRegisterButton.disabled}`);
+
+        } catch (error) {
+            console.error("Error fetching or populating users:", error);
+            groupMembersLoadingError.textContent = `Failed to load users: ${error.message}. Cannot register group.`;
+            groupMembersLoadingError.style.display = 'block';
+            groupMembersSelect.innerHTML = '<option value="" disabled>Error loading users</option>';
+            groupMembersSelect.disabled = true; // Keep select disabled on error
+            groupRegisterButton.disabled = true; // Keep button disabled on error
+            console.log("Error loading users. Select and button remain disabled.");
+        }
+    }
+
+    async function fetchIndividualUsers() {
+        console.log(`Fetching individual users from ${API_URL}/get_individual_users`);
+        const response = await fetch(`${API_URL}/get_individual_users`);
+        console.log(`Fetch response status: ${response.status}`);
+        if (!response.ok) {
+            let errorMsg = `HTTP error! status: ${response.status}`;
+            try {
+                const errorData = await response.json();
+                console.error("Error response data:", errorData);
+                errorMsg = errorData.error || errorData.message || errorMsg;
+            } catch (e) { console.error("Could not parse error response JSON", e) }
+            throw new Error(errorMsg);
+        }
+        const data = await response.json();
+        console.log("Raw data received from /get_individual_users:", data);
+        // Adjust based on backend response structure - IMPORTANT!
+        const userList = data.users || data || [];
+        console.log("Parsed user list:", userList);
+        return userList;
+    }
+
+    function populateUserDropdown(users) {
+        groupMembersSelect.innerHTML = ''; // Clear existing options
+        console.log("Populating user dropdown with:", users);
+
+        if (!users || users.length === 0) {
+            console.log("No users found or provided.");
+            groupMembersSelect.innerHTML = '<option value="" disabled>No individual users found</option>';
+            groupMembersSelect.disabled = true; // Keep disabled if no users
+            console.log("Select populated with 'No users found' and remains disabled.");
+            return;
+        }
+
+        let optionsAdded = 0;
+        users.forEach((user, index) => {
+            console.log(`Processing user ${index}:`, user);
+            if (user && user.user_id !== undefined && user.user_id !== null && user.name) { // Check user_id exists and is not null/undefined
+                 const option = document.createElement('option');
+                 option.value = user.user_id;
+                 option.textContent = `${user.name} (${user.user_id})`;
+                 groupMembersSelect.appendChild(option);
+                 optionsAdded++;
+                 console.log(`Added option: value="${option.value}", text="${option.textContent}"`);
+            } else {
+                console.warn(`Skipping invalid user object at index ${index}:`, user);
+            }
+        });
+
+        // Enable the select ONLY if valid options were actually added
+        if (optionsAdded > 0) {
+            groupMembersSelect.disabled = false;
+            console.log(`Successfully added ${optionsAdded} options. Select element ENABLED.`);
+        } else {
+            groupMembersSelect.innerHTML = '<option value="" disabled>No valid users found</option>';
+            groupMembersSelect.disabled = true;
+            console.log("No valid options were added. Select populated with 'No valid users' and remains disabled.");
+        }
+    }
+
+    function showMainApp() {
+        loginScreen.style.display = 'none';
+        mainAppContent.style.display = 'block';
+        clearMessages();
+    }
+
+    function clearMessages() {
+        loginError.textContent = '';
+        registerMessage.textContent = '';
+        registerMessage.className = 'form-message';
+        groupRegisterMessage.textContent = '';
+        groupRegisterMessage.className = 'form-message';
+        groupMembersLoadingError.textContent = '';
+        groupMembersLoadingError.style.display = 'none';
+    }
+
+    function displayMessage(element, message, isSuccess = false) {
+        element.textContent = message;
+        element.className = isSuccess ? 'form-message success' : 'form-message';
+        element.style.display = 'block';
+    }
+
+    // --- Event Handlers ---
 
     function handleLogin() {
         const userId = loginUserIdInput.value.trim();
@@ -125,130 +217,236 @@ document.addEventListener('DOMContentLoaded', () => {
             loginPasswordInput.value = '';
         }
     }
-
-    async function handleRegister() {
-        const userId = registerUserIdInput.value.trim();
-        const user_name = registerNameInput.value.trim();
-        const userAge = registerAgeInput.value.trim();
-        const userGender = registerGenderInput.value.trim();
-        const userJob = registerJobInput.value.trim();
-        const userChildren = registerChildrenInput.value.trim();
-        const userChildrenOld = registerChildrenOldInput.value.trim();
-        const userChildrenYoung = registerChildrenYoungInput.value.trim();
-        const password = registerPasswordInput.value;
-        const confirmPassword = registerConfirmPasswordInput.value;
-
-        registerMessage.textContent = ''; // Clear previous messages
-        registerMessage.classList.remove('success'); // Ensure not green
-
-        // --- Client-side validation ---
-        if (!userId || !user_name || !userAge || !userGender || !userJob || !userChildren || !password || !confirmPassword) {
-            registerMessage.textContent = 'Please fill in all required fields.';
-            return;
-        }
-        if (password !== confirmPassword) {
-            registerMessage.textContent = 'Passwords do not match.';
-            return;
-        }
-        // Optional: Add more validation (e.g., password complexity, user ID format)
-
-        // --- Call Backend for Registration ---
-        try {
-            // *** YOU NEED TO CREATE THIS /register ENDPOINT IN YOUR BACKEND (backend.py) ***
-            const response = await fetch("http://127.0.0.1:5000/register", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    userId: userId,
-                    password: password, // Send password (backend should hash it)
-                    user_name: user_name,
-                    userAge: userAge,
-                    userGender: userGender,
-                    userJob: userJob,
-                    userChildren: userChildren,
-                    userChildrenOld: userChildrenOld,
-                    userChildrenYoung: userChildrenYoung,
-                }),
-            });
-
-            const data = await response.json(); // Always try to parse JSON
-
-            if (!response.ok) {
-                // Use error message from backend if available, otherwise use status text
-                throw new Error(data.error || `Registration failed: ${response.statusText}`);
-            }
-
-            // Registration Successful
-            registerMessage.textContent = data.message || 'Registration successful! You can now log in.';
-            registerMessage.classList.add('success'); // Make text green
-
-            // Clear the form
-            registerUserIdInput.value = '';
-            registerPasswordInput.value = '';
-            registerConfirmPasswordInput.value = '';
-
-            // Optionally switch back to login form after a short delay
-            setTimeout(showLoginForm, 2000); // Switch back after 2 seconds
-
-        } catch (error) {
-            console.error("Registration Error:", error);
-            registerMessage.textContent = error.message || 'An error occurred during registration.';
-            registerMessage.classList.remove('success');
-        }
-    }
-
-    // --- Placeholder Login Validation Function ---
-    // Replace this with a real check (e.g., API call to a /login endpoint)
     function validateCredentials(userId, password) {
         console.log(`Validating User: ${userId}`);
         // --- !!! DUMMY CHECK - DO NOT USE IN PRODUCTION !!! ---
         return userId.length > 0 && password.length > 0;
     }
 
-    // --- Recommendation Functions (handleNChange, handleRecommendationTypeChange, fetchTitle, createStarRating, createPlaceElement, displayRecommendations, getRecommendations) ---
-    // --- Keep all your existing recommendation-related functions here ---
-    // --- (No changes needed in them for the registration feature) ---
+    async function handleIndividualRegister(event) {
+        event.preventDefault();
+        clearMessages();
+        // (Keep validation and data gathering as before)
+        const userId = registerUserIdInput.value.trim();
+        const name = registerNameInput.value.trim();
+        const age = registerAgeInput.value.trim();
+        const gender = registerGenderInput.value.trim().toUpperCase();
+        const job = registerJobInput.value.trim();
+        const children = registerChildrenInput.value.trim();
+        const childrenOld = registerChildrenOldInput.value.trim();
+        const childrenYoung = registerChildrenYoungInput.value.trim();
+        const password = registerPasswordInput.value;
+        const confirmPassword = registerConfirmPasswordInput.value;
+        group_recommendations_flag = false;
 
-    // --- Function to handle the selection of N ---
+        if (!userId || !name || !age || !gender || !job || !children || !password || !confirmPassword) {
+            displayMessage(registerMessage, 'Please fill in all required fields.'); return;
+        }
+        if (password !== confirmPassword) {
+            displayMessage(registerMessage, 'Passwords do not match.'); return;
+        }
+        if (!['M', 'F'].includes(gender)) {
+             displayMessage(registerMessage, 'Gender must be M or F.'); return;
+        }
+         if (!['0', '1'].includes(children)) {
+             displayMessage(registerMessage, 'Children field must be 0 or 1.'); return;
+        }
+        // Add more validation if needed (e.g., age/job are numbers)
+
+        const registrationData = {
+            user_id: userId, name: name, age: parseInt(age), gender: gender, job: parseInt(job),
+            children: parseInt(children), children_old: childrenOld ? parseInt(childrenOld) : null,
+            children_young: childrenYoung ? parseInt(childrenYoung) : null, password: password, is_group: false
+        };
+        console.log("Attempting individual registration with data:", registrationData);
+
+        try {
+            const response = await fetch(`${API_URL}/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(registrationData)
+            });
+            const data = await response.json();
+            console.log("Individual registration response:", data);
+
+            if (response.ok) {
+                console.log("Individual registration successful. Redirecting to rate preferences...");
+                displayMessage(registerMessage, data.message || 'Registration successful! Redirecting...', true);
+                localStorage.setItem('userId', userId); // Store ID for rating page
+                setTimeout(() => { window.location.href = 'rate_preferences.html'; }, 1500);
+            } else {
+                console.error("Individual registration failed:", data.message || data.error);
+                displayMessage(registerMessage, data.message || data.error || 'Registration failed.');
+            }
+        } catch (error) {
+            console.error('Individual Registration Fetch Error:', error);
+            displayMessage(registerMessage, 'An error occurred during registration.');
+        }
+    }
+
+    async function handleGroupRegister(event) {
+        event.preventDefault();
+        clearMessages();
+        // (Keep validation and data gathering as before)
+        const groupName = groupRegisterNameInput.value.trim();
+        const selectedMemberOptions = Array.from(groupMembersSelect.selectedOptions);
+        const selectedMemberIds = selectedMemberOptions.map(option => option.value);
+        group_recommendations_flag = true;
+        console.log("Selected member IDs:", selectedMemberIds); // Log selected IDs
+
+        if (!groupName) {
+            displayMessage(groupRegisterMessage, 'Please fill in all group details (ID, Name, Password).'); return;
+        }
+        if (selectedMemberIds.length === 0) {
+            // Check if the select is actually enabled and has options
+            if (groupMembersSelect.disabled || groupMembersSelect.options.length === 0 || groupMembersSelect.options[0]?.disabled) {
+                 displayMessage(groupRegisterMessage, 'Cannot register group: Members list is not available or empty.');
+            } else {
+                 displayMessage(groupRegisterMessage, 'Please select at least one member for the group.');
+            }
+            return;
+        }
+
+        groupData = {
+            name: groupName,
+            is_group: true, members: selectedMemberIds
+        };
+        console.log("Attempting group registration with data:", groupData);
+
+        greetingDiv.textContent = `Welcome, User ${groupName}!`;
+
+        loginScreen.style.display = 'none';
+        mainAppContent.style.display = 'block';
+
+        recommendationsDiv.innerHTML = '<p>Loading recommendations...</p>';
+        getGroupRecommendations(groupData);
+    }
+
     function handleNChange() {
         N = parseInt(numRecommendationsSelect.value); // Update the global N
         console.log("Number of recommendations changed to:", N);
-        if (currentUserId) { // Only fetch if a user is logged in
-            getRecommendations(currentUserId);
+        if (group_recommendations_flag && groupData) {
+            getGroupRecommendations(groupData);
+        }
+        else{
+            if (currentUserId) { // Only fetch if a user is logged in
+                getRecommendations(currentUserId);
+            }
         }
     }
 
-    // --- Function to handle recommendation type changes ---
-    function handleRecommendationTypeChange() {
-        console.log("Recommendation types changed.");
-        if (currentUserId) { // Only fetch if a user is logged in
-            getRecommendations(currentUserId);
+    // --- Recommendation Fetching and Display Logic ---
+
+    function displayGreeting(name) {
+        if (greetingDiv) {
+            greetingDiv.textContent = `Welcome, ${name}!`;
         }
     }
 
+    async function getRecommendations(userId) {
+        if (!userId) {
+            console.error("getRecommendations called without userId.");
+            displayRecommendations([]); // Clear display if no user ID
+            return;
+        }
 
-    // --- Function to fetch the title from the backend ---
-    function fetchTitle() {
-        fetch("http://127.0.0.1:5000/get_title") // Replace with your backend URL if needed
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (titleElement) {
-                    titleElement.textContent = data.title;
-                }
-            })
-            .catch(error => {
-                console.error("Error fetching title:", error);
-                if (titleElement) {
-                    titleElement.textContent = "Valencia Guide (Error Loading Title)"; // Fallback title
-                }
+        const typeCheckboxes = document.querySelectorAll('input[name="recommendationType"]:checked');
+        const selectedTypes = Array.from(typeCheckboxes).map(checkbox => checkbox.value);
+
+        console.log(`Fetching ${N} recommendations for user ${userId} (Types: ${selectedTypes.join(', ') || 'None'})`);
+
+        if (selectedTypes.length === 0) {
+            console.warn("No recommendation type selected.");
+            // Decide if you want to proceed or show a message
+            // recommendationsDiv.innerHTML = "<p>Please select at least one recommendation type.</p>";
+            // return;
+        }
+
+        recommendationsDiv.innerHTML = '<p>Loading recommendations...</p>';
+
+        try {
+            const response = await fetch("http://127.0.0.1:5000/recommendations", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    userId: userId,
+                    num_recommendations: N,
+                    recommendation_types: selectedTypes,
+                }),
             });
+
+            if (!response.ok) {
+                let errorData = null;
+                try { errorData = await response.json(); } catch (e) { /* Ignore */ }
+                const errorMessage = errorData?.error || `HTTP error! status: ${response.status}`;
+                throw new Error(errorMessage);
+            }
+
+            const data = await response.json();
+            if (data && data.recommendations) {
+                 displayRecommendations(data.recommendations);
+            } else {
+                console.error("Unexpected response format from backend:", data);
+                displayRecommendations([]);
+            }
+
+        } catch (error) {
+            console.error("Error fetching recommendations:", error);
+            recommendationsDiv.innerHTML = `<p>Error loading recommendations: ${error.message}</p>`;
+        }
+    }
+
+    async function getGroupRecommendations(group_data) {
+
+        const typeCheckboxes = document.querySelectorAll('input[name="recommendationType"]:checked');
+        const selectedTypes = Array.from(typeCheckboxes).map(checkbox => checkbox.value);
+
+        console.log(`Fetching ${N} recommendations for group ${group_data.name} (Types: ${selectedTypes.join(', ') || 'None'})`);
+
+        if (selectedTypes.length === 0) {
+            console.warn("No recommendation type selected.");
+            // Decide if you want to proceed or show a message
+            // recommendationsDiv.innerHTML = "<p>Please select at least one recommendation type.</p>";
+            // return;
+        }
+
+        recommendationsDiv.innerHTML = '<p>Loading recommendations...</p>';
+
+        try {
+            const response = await fetch("http://127.0.0.1:5000/group_recommendations", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    users: group_data.members,
+                    group_name: group_data.name,
+                    num_recommendations: N,
+                    recommendation_types: selectedTypes,
+                }),
+            });
+
+            if (!response.ok) {
+                let errorData = null;
+                try { errorData = await response.json(); } catch (e) { /* Ignore */ }
+                const errorMessage = errorData?.error || `HTTP error! status: ${response.status}`;
+                throw new Error(errorMessage);
+            }
+
+            const data = await response.json();
+            if (data && data.recommendations) {
+                 displayRecommendations(data.recommendations);
+            } else {
+                console.error("Unexpected response format from backend:", data);
+                displayRecommendations([]);
+            }
+
+        } catch (error) {
+            console.error("Error fetching recommendations:", error);
+            recommendationsDiv.innerHTML = `<p>Error loading recommendations: ${error.message}</p>`;
+        }
     }
 
     // --- Star Rating Function ---
@@ -328,65 +526,45 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Get Recommendations Function (Your existing logic) ---
-    async function getRecommendations(userId) {
-        if (!userId) {
-            console.error("getRecommendations called without userId.");
-            displayRecommendations([]); // Clear display if no user ID
-            return;
+
+    
+    
+    function handleTypeChange() {
+        if (group_recommendations_flag && groupData) {
+            getGroupRecommendations(groupData);
         }
-
-        const typeCheckboxes = document.querySelectorAll('input[name="recommendationType"]:checked');
-        const selectedTypes = Array.from(typeCheckboxes).map(checkbox => checkbox.value);
-
-        console.log(`Fetching ${N} recommendations for user ${userId} (Types: ${selectedTypes.join(', ') || 'None'})`);
-
-        if (selectedTypes.length === 0) {
-            console.warn("No recommendation type selected.");
-            // Decide if you want to proceed or show a message
-            // recommendationsDiv.innerHTML = "<p>Please select at least one recommendation type.</p>";
-            // return;
-        }
-
-        recommendationsDiv.innerHTML = '<p>Loading recommendations...</p>';
-
-        try {
-            const response = await fetch("http://127.0.0.1:5000/recommendations", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    userId: userId,
-                    num_recommendations: N,
-                    recommendation_types: selectedTypes,
-                }),
-            });
-
-            if (!response.ok) {
-                let errorData = null;
-                try { errorData = await response.json(); } catch (e) { /* Ignore */ }
-                const errorMessage = errorData?.error || `HTTP error! status: ${response.status}`;
-                throw new Error(errorMessage);
+        else{
+            if (currentUserId) { // Only fetch if a user is logged in
+                getRecommendations(currentUserId);
             }
-
-            const data = await response.json();
-            if (data && data.recommendations) {
-                 displayRecommendations(data.recommendations);
-            } else {
-                console.error("Unexpected response format from backend:", data);
-                displayRecommendations([]);
-            }
-
-        } catch (error) {
-            console.error("Error fetching recommendations:", error);
-            recommendationsDiv.innerHTML = `<p>Error loading recommendations: ${error.message}</p>`;
         }
     }
 
+    // --- Add Event Listeners ---
+    // (Keep structure as before)
+    if (showIndividualRegisterLink) { showIndividualRegisterLink.addEventListener('click', (e) => { e.preventDefault(); showIndividualRegisterForm(); }); }
+    if (showGroupRegisterLink) { showGroupRegisterLink.addEventListener('click', async (e) => { e.preventDefault(); await showGroupRegisterForm(); }); }
+    if (showLoginLinkFromIndividual) { showLoginLinkFromIndividual.addEventListener('click', (e) => { e.preventDefault(); showLoginForm(); }); }
+    if (showLoginLinkFromGroup) { showLoginLinkFromGroup.addEventListener('click', (e) => { e.preventDefault(); showLoginForm(); }); }
+    if (loginButton) { loginButton.addEventListener('click', handleLogin); }
+    if (registerButton) { registerButton.addEventListener('click', handleIndividualRegister); }
+    if (groupRegisterButton) { groupRegisterButton.addEventListener('click', handleGroupRegister); }
+    if (numRecommendationsSelect) { numRecommendationsSelect.addEventListener('change', handleNChange); }
+    if (recommendationTypeCheckboxes) { recommendationTypeCheckboxes.forEach(checkbox => { checkbox.addEventListener('change', handleTypeChange); }); }
 
-    // --- Initial State Setup ---
-    // Login form is shown by default (HTML/CSS handles hiding others)
-    // fetchTitle() is called above.
+    // --- Initial State ---
+    // (Keep structure as before)
+    const storedUserId = localStorage.getItem('userId');
+    const storedUserName = localStorage.getItem('userName');
+    if (storedUserId && storedUserName) {
+        console.log(`Found stored user: ${storedUserName} (${storedUserId}). Showing main app.`);
+        currentUserId = storedUserId;
+        displayGreeting(storedUserName);
+        showMainApp();
+        fetchRecommendations();
+    } else {
+        console.log("No stored user found. Showing login form.");
+        showLoginForm();
+    }
 
 }); // End DOMContentLoaded

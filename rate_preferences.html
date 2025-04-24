@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rate Preferences</title>
+    <!-- Link the existing CSS file -->
+    <link rel="stylesheet" href="styles/RatePreferences.css">
+    <style>
+        /* Add a simple loading indicator style */
+        .loading-text {
+            text-align: center;
+            padding: 1rem;
+            color: #555;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="rate-preferences-container">
+        <h2>¿Qué valoras al hacer turismo?</h2>
+        <p>Por favor, evalúa entre 15 y 25 aspectos de los siguientes del 1 y el 10 (1: Preferiría evitarlo, 10: Preferiría visitarlo)</p>
+        <p>Los valores que dejes a 0 se considerará que no tienen importancia a la hora de decidir cuánto disfrutas una visita.</p>
+
+        <!-- Area for displaying error messages -->
+        <div id="errorMessage" class="error-message" style="display: none;"></div>
+        <!-- Area for displaying success messages -->
+        <div id="successMessage" class="success-message" style="display: none;"></div>
+
+        <form id="ratingsForm">
+            <!-- Preferences will be loaded here by JavaScript -->
+            <div id="preferencesList">
+                <p class="loading-text">Loading preferences...</p>
+            </div>
+
+            <button type="submit" id="submitButton" disabled>
+                Submit Ratings
+            </button>
+        </form>
+    </div>
+
+    <!-- Include the JavaScript file -->
+    <script src="scripts/rate_preferences.js"></script>
+</body>
+</html>

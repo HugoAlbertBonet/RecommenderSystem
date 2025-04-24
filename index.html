@@ -29,6 +29,7 @@
             width: 100%; /* Take full width of parent */
             max-width: 400px; /* Max width for the form */
             box-sizing: border-box;
+            margin-bottom: 20px; /* Add some space between forms if they were visible */
         }
 
         .form-container h2 {
@@ -44,7 +45,8 @@
             font-weight: bold;
         }
         .form-container input[type="text"],
-        .form-container input[type="password"] {
+        .form-container input[type="password"],
+        .form-container select { /* Add select styling */
             width: 100%;
             padding: 10px;
             margin-bottom: 15px;
@@ -52,6 +54,12 @@
             border-radius: 4px;
             box-sizing: border-box; /* Include padding in width */
         }
+        /* Style for multi-select */
+        .form-container select[multiple] {
+            min-height: 100px; /* Give it some height */
+            overflow-y: auto; /* Add scroll if needed */
+        }
+
         .form-container button {
             background-color: #5cb85c; /* Green */
             color: white;
@@ -78,11 +86,16 @@
         .form-message.success {
              color: green;
         }
+        .form-message.loading { /* Style for loading messages */
+            color: #555;
+            font-style: italic;
+        }
+
 
         /* Toggle links */
         .toggle-link {
             display: block;
-            margin-top: 15px;
+            margin-top: 10px; /* Adjusted margin */
             color: #007bff;
             cursor: pointer;
             text-decoration: none;
@@ -92,8 +105,9 @@
             text-decoration: underline;
         }
 
-        /* Initially hide register form and main app */
-        #register-form,
+        /* Initially hide register forms and main app */
+        #individual-register-form, /* Updated ID */
+        #group-register-form,      /* Added ID */
         #main-app-content {
             display: none;
         }
@@ -119,12 +133,13 @@
             </div>
             <button id="loginButton">Login</button>
             <p id="login-error" class="form-message"></p>
-            <a href="#" id="show-register-link" class="toggle-link">¿Todavía no tienes una cuenta? Regístrate</a>
+            <a href="#" id="show-individual-register-link" class="toggle-link">¿Todavía no tienes una cuenta? Regístrate (Individual)</a>
+            <a href="#" id="show-group-register-link" class="toggle-link">¿Quieres registrar un grupo? Regístrate (Grupo)</a>
         </div>
 
-        <!-- Registration Form (Initially Hidden) -->
-        <div id="register-form" class="form-container">
-            <h2>Registrar una cuenta nueva</h2>
+        <!-- Individual Registration Form (Initially Hidden) -->
+        <div id="individual-register-form" class="form-container"> <!-- Updated ID -->
+            <h2>Registrar Cuenta Individual</h2> <!-- Updated Heading -->
             <div>
                 <label for="registerUserId">User ID:</label>
                 <input type="text" id="registerUserId" placeholder="Elige un ID de usuario" required>
@@ -143,17 +158,19 @@
             </div>
             <div>
                 <label for="registerJob">Job:</label>
-                <p>1;Fuerzas armadas</p>
-                <p>2;Dirección de las empresas y de las administraciones públicas</p>
-                <p>3;Técnicos y profesionales científicos e intelectuales</p>
-                <p>4;Técnicos y profesionales de apoyo</p>
-                <p>5;Empleados de tipo administrativo</p>
-                <p>6;Trabajadores de los servicios de restauración, personales, protección y vendedores de los comercios</p>
-                <p>7;Trabajadores cualificados en la agricultura y en la pesca</p>
-                <p>8;Artesanos y trabajadores cualificados de industrias manufactureras, construcción, y minería, excepto operadores de instalaciones y maquinaria</p>
-                <p>9;Operadores de instalaciones y maquinaria, y montadores</p>
-                <p>10;Trabajadores no cualificados</p>
-                <p>11;Inactivo o desocupado</p>
+                <p style="font-size: 0.8em; text-align: left; margin-bottom: 5px;">
+                    1;Fuerzas armadas<br>
+                    2;Dirección de las empresas y de las administraciones públicas<br>
+                    3;Técnicos y profesionales científicos e intelectuales<br>
+                    4;Técnicos y profesionales de apoyo<br>
+                    5;Empleados de tipo administrativo<br>
+                    6;Trabajadores de los servicios de restauración, personales, protección y vendedores de los comercios<br>
+                    7;Trabajadores cualificados en la agricultura y en la pesca<br>
+                    8;Artesanos y trabajadores cualificados de industrias manufactureras, construcción, y minería, excepto operadores de instalaciones y maquinaria<br>
+                    9;Operadores de instalaciones y maquinaria, y montadores<br>
+                    10;Trabajadores no cualificados<br>
+                    11;Inactivo o desocupado
+                </p>
                 <input type="text" id="registerJob" placeholder="Ingresa el código de tu ocupación" required>
             </div>
             <div>
@@ -176,9 +193,30 @@
                 <label for="registerConfirmPassword">Confirm Password:</label>
                 <input type="password" id="registerConfirmPassword" placeholder="Confirm your password" required>
             </div>
-            <button id="registerButton">Register</button>
+            <button id="registerButton">Register Individual</button> <!-- Updated Button Text -->
             <p id="register-message" class="form-message"></p>
-            <a href="#" id="show-login-link" class="toggle-link">Already have an account? Login</a>
+            <a href="#" id="show-login-link-from-individual" class="toggle-link">Already have an account? Login</a> <!-- Updated ID for clarity -->
+        </div>
+
+        <!-- Group Registration Form (Initially Hidden) -->
+        <div id="group-register-form" class="form-container">
+            <h2>Registrar Cuenta de Grupo</h2>
+            <div>
+                <label for="groupRegisterName">Group Name:</label>
+                <input type="text" id="groupRegisterName" placeholder="Ingresa el nombre del grupo" required>
+            </div>
+            <!-- New Section for Member Selection -->
+            <div>
+                <label for="groupMembersSelect">Select Group Members:</label>
+                <select id="groupMembersSelect" name="groupMembers" multiple required>
+                    <!-- Options will be populated by JavaScript -->
+                    <option value="" disabled>Loading available users...</option>
+                </select>
+                <p id="group-members-loading-error" class="form-message" style="display: none;"></p> <!-- Area for loading errors -->
+            </div>
+            <button id="groupRegisterButton">Register Group</button>
+            <p id="group-register-message" class="form-message"></p>
+            <a href="#" id="show-login-link-from-group" class="toggle-link">Already have an account? Login</a> <!-- Unique ID -->
         </div>
 
     </div> <!-- End of login-screen -->
@@ -186,14 +224,15 @@
 
     <!-- Main Application Content (Initially Hidden) -->
     <div id="main-app-content">
-        <header>
+        <!-- ... (rest of your main app content remains the same) ... -->
+         <header>
             <h1>Discover Valencia</h1>
             <p>Explore the best places to visit in Valencia!</p>
             <div id="greeting"></div>
             <div class="controls-container">
                 <div class="num-recommendations-control">
                     <label for="numRecommendations">Number of Recommendations:</label>
-                    <select id="numRecommendations" onchange="handleNChange()">
+                    <select id="numRecommendations">
                         <option value="5">5</option>
                         <option value="10" selected>10</option>
                         <option value="15">15</option>
@@ -225,4 +264,5 @@
     <script src="script.js"></script>
 </body>
 </html>
+
 

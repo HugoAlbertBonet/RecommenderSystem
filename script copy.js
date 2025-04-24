@@ -2,10 +2,32 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Get DOM Elements ---
     const loginScreen = document.getElementById('login-screen');
     const mainAppContent = document.getElementById('main-app-content');
+
+    // Login Form Elements
+    const loginForm = document.getElementById('login-form');
     const loginUserIdInput = document.getElementById('loginUserId');
     const loginPasswordInput = document.getElementById('loginPassword');
     const loginButton = document.getElementById('loginButton');
     const loginError = document.getElementById('login-error');
+    const showRegisterLink = document.getElementById('show-register-link');
+
+    // Register Form Elements
+    const registerForm = document.getElementById('register-form');
+    const registerUserIdInput = document.getElementById('registerUserId');
+    const registerNameInput = document.getElementById('registerName');
+    const registerAgeInput = document.getElementById('registerAge');
+    const registerGenderInput = document.getElementById('registerGender');
+    const registerJobInput = document.getElementById('registerJob');
+    const registerChildrenInput = document.getElementById('registerChildren');
+    const registerChildrenOldInput = document.getElementById('registerChildrenOld');
+    const registerChildrenYoungInput = document.getElementById('registerChildrenYoung');
+    const registerPasswordInput = document.getElementById('registerPassword');
+    const registerConfirmPasswordInput = document.getElementById('registerConfirmPassword');
+    const registerButton = document.getElementById('registerButton');
+    const registerMessage = document.getElementById('register-message');
+    const showLoginLink = document.getElementById('show-login-link');
+
+    // Main App Elements
     const greetingDiv = document.getElementById('greeting');
     const recommendationsDiv = document.getElementById('recommendations');
     const numRecommendationsSelect = document.getElementById('numRecommendations');
@@ -13,20 +35,34 @@ document.addEventListener('DOMContentLoaded', () => {
     const titleElement = document.querySelector("header h1"); // For fetchTitle
 
     // --- Global State ---
-    let N = parseInt(numRecommendationsSelect.value); // Initialize N from the select element
-    let currentUserId = null; // Variable to store the logged-in user ID
+    let N = parseInt(numRecommendationsSelect.value); // Initialize N
+    let currentUserId = null; // Logged-in user ID
 
     // --- Event Listeners ---
 
-    // Login Button Click Handler
-    loginButton.addEventListener('click', handleLogin);
-
-    // Listen for Enter key press in password field for convenience
-    loginPasswordInput.addEventListener('keyup', function(event) {
-        if (event.key === "Enter") {
-            handleLogin();
-        }
+    // Login/Register Toggles
+    showRegisterLink.addEventListener('click', (e) => {
+        e.preventDefault(); // Prevent default link behavior
+        showRegisterForm();
     });
+
+    showLoginLink.addEventListener('click', (e) => {
+        e.preventDefault(); // Prevent default link behavior
+        showLoginForm();
+    });
+
+    // Form Submissions
+    loginButton.addEventListener('click', handleLogin);
+    registerButton.addEventListener('click', handleRegister);
+
+    // Enter Key Listeners
+    loginPasswordInput.addEventListener('keyup', function(event) {
+        if (event.key === "Enter") handleLogin();
+    });
+    registerConfirmPasswordInput.addEventListener('keyup', function(event) {
+        if (event.key === "Enter") handleRegister();
+    });
+    // Optional: Add Enter listener to other register fields if desired
 
     // Recommendation Controls Listeners
     numRecommendationsSelect.addEventListener('change', handleNChange);
@@ -35,15 +71,33 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Fetch title on initial load
-    fetchTitle(); // Call fetchTitle when the DOM is ready
+    fetchTitle();
 
-    // --- Functions ---
+    // --- View Toggle Functions ---
+
+    function showLoginForm() {
+        registerForm.style.display = 'none';
+        loginForm.style.display = 'block';
+        loginError.textContent = ''; // Clear any previous login errors
+        registerMessage.textContent = ''; // Clear any register messages
+    }
+
+    function showRegisterForm() {
+        loginForm.style.display = 'none';
+        registerForm.style.display = 'block';
+        loginError.textContent = ''; // Clear any login errors
+        registerMessage.textContent = ''; // Clear any previous register messages
+    }
+
+
+    // --- Authentication Functions ---
 
     function handleLogin() {
         const userId = loginUserIdInput.value.trim();
         const password = loginPasswordInput.value;
 
         loginError.textContent = ''; // Clear previous errors
+        loginError.classList.remove('success'); // Ensure not green
 
         if (!userId || !password) {
             loginError.textContent = 'Please enter both User ID and Password.';
@@ -51,38 +105,134 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // --- !!! IMPORTANT: LOGIN VALIDATION ---
-        // Replace this with your actual validation logic (e.g., API call)
-        const isValidLogin = validateCredentials(userId, password);
+        // Replace this with your actual validation logic (e.g., API call to /login)
+        const isValidLogin = validateCredentials(userId, password); // Placeholder
 
         if (isValidLogin) {
             // Login Successful
-            currentUserId = userId; // Store the logged-in user ID
-            greetingDiv.textContent = `Welcome, User ${currentUserId}!`; // Update greeting
+            currentUserId = userId;
+            greetingDiv.textContent = `Welcome, User ${currentUserId}!`;
 
-            // Hide login screen, show main app
             loginScreen.style.display = 'none';
-            mainAppContent.style.display = 'block'; // Or 'flex', 'grid' etc.
+            mainAppContent.style.display = 'block';
 
-            // --- *** CALL ACTUAL getRecommendations *** ---
-            recommendationsDiv.innerHTML = '<p>Loading recommendations...</p>'; // Show loading indicator
-            getRecommendations(currentUserId); // Fetch initial recommendations
+            recommendationsDiv.innerHTML = '<p>Loading recommendations...</p>';
+            getRecommendations(currentUserId);
 
         } else {
             // Login Failed
             loginError.textContent = 'Invalid User ID or Password.';
-            loginPasswordInput.value = ''; // Clear password field on failure
+            loginPasswordInput.value = '';
         }
     }
 
-    // --- Placeholder Validation Function ---
+    async function handleRegister() {
+        const userId = registerUserIdInput.value.trim();
+        const user_name = registerNameInput.value.trim();
+        const userAge = registerAgeInput.value.trim();
+        const userGender = registerGenderInput.value.trim();
+        const userJob = registerJobInput.value.trim();
+        const userChildren = registerChildrenInput.value.trim();
+        const userChildrenOld = registerChildrenOldInput.value.trim();
+        const userChildrenYoung = registerChildrenYoungInput.value.trim();
+        const password = registerPasswordInput.value;
+        const confirmPassword = registerConfirmPasswordInput.value;
+
+        registerMessage.textContent = ''; // Clear previous messages
+        registerMessage.classList.remove('success'); // Ensure not green
+
+        // --- Client-side validation ---
+        if (!userId || !user_name || !userAge || !userGender || !userJob || !userChildren || !password || !confirmPassword) {
+            registerMessage.textContent = 'Please fill in all required fields.';
+            return;
+        }
+        if (password !== confirmPassword) {
+            registerMessage.textContent = 'Passwords do not match.';
+            return;
+        }
+        // Optional: Add more validation (e.g., password complexity, user ID format)
+
+        // --- Call Backend for Registration ---
+        try {
+            // *** YOU NEED TO CREATE THIS /register ENDPOINT IN YOUR BACKEND (backend.py) ***
+            const response = await fetch("http://127.0.0.1:5000/register", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    userId: userId,
+                    password: password, // Send password (backend should hash it)
+                    user_name: user_name,
+                    userAge: userAge,
+                    userGender: userGender,
+                    userJob: userJob,
+                    userChildren: userChildren,
+                    userChildrenOld: userChildrenOld,
+                    userChildrenYoung: userChildrenYoung,
+                }),
+            });
+
+            const data = await response.json(); // Always try to parse JSON
+
+            if (!response.ok) {
+                // Use error message from backend if available, otherwise use status text
+                throw new Error(data.error || `Registration failed: ${response.statusText}`);
+            }
+
+            // Registration Successful
+            registerMessage.textContent = data.message || 'Registration successful! Redirecting to rate preferences...'; // Updated message
+            registerMessage.classList.add('success'); // Make text green
+
+            // Store the userId for the next page
+            const registeredUserId = userId; // Capture the userId used for registration
+
+            // Clear the form (optional, but good practice before redirect)
+            registerUserIdInput.value = '';
+            registerNameInput.value = '';
+            registerAgeInput.value = '';
+            registerGenderInput.value = '';
+            registerJobInput.value = '';
+            registerChildrenInput.value = '';
+            registerChildrenOldInput.value = '';
+            registerChildrenYoungInput.value = '';
+            registerPasswordInput.value = '';
+            registerConfirmPasswordInput.value = '';
+
+            // --- MODIFICATION START ---
+            // Redirect to rate_preferences.html after a short delay
+            setTimeout(() => {
+                localStorage.setItem('userId', registeredUserId); // Store the ID for rate_preferences.js
+                // Ensure the path is correct relative to your current HTML file
+                // If index.html and rate_preferences.html are in the same folder:
+                window.location.href = 'rate_preferences.html';
+                // If rate_preferences.html is in the root directory:
+                // window.location.href = '/rate_preferences.html';
+            }, 2000); // Keep the 2-second delay to show the success message
+            // --- MODIFICATION END ---
+
+            // Remove the old code that switched back to the login form:
+            // setTimeout(showLoginForm, 2000); // <-- REMOVE OR COMMENT OUT THIS LINE
+
+        } catch (error) {
+            console.error("Registration Error:", error);
+            registerMessage.textContent = error.message || 'An error occurred during registration.';
+            registerMessage.classList.remove('success');
+        }
+    }
+
+
+    // --- Placeholder Login Validation Function ---
     // Replace this with a real check (e.g., API call to a /login endpoint)
     function validateCredentials(userId, password) {
-        console.log(`Validating User: ${userId}`); // Keep console log for debugging
-        // --- !!! THIS IS A DUMMY CHECK - DO NOT USE IN PRODUCTION !!! ---
-        // In a real app, send userId and password to a secure backend endpoint.
-        // For demonstration, let's accept any non-empty user/pass
+        console.log(`Validating User: ${userId}`);
+        // --- !!! DUMMY CHECK - DO NOT USE IN PRODUCTION !!! ---
         return userId.length > 0 && password.length > 0;
     }
+
+    // --- Recommendation Functions (handleNChange, handleRecommendationTypeChange, fetchTitle, createStarRating, createPlaceElement, displayRecommendations, getRecommendations) ---
+    // --- Keep all your existing recommendation-related functions here ---
+    // --- (No changes needed in them for the registration feature) ---
 
     // --- Function to handle the selection of N ---
     function handleNChange() {
@@ -155,22 +305,32 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Create Place Element Function ---
     function createPlaceElement(itemName, similarity) {
         const placeDiv = document.createElement("div");
+        // Using the class name from your previous version that worked for styling
         placeDiv.classList.add("place");
-        placeDiv.classList.add("recommendation");
+        placeDiv.classList.add("recommendation"); // Keep both if needed, or just the one your CSS uses
 
-        const h2 = document.createElement("h2");
-        h2.textContent = itemName;
-        placeDiv.appendChild(h2);
+        // Use h3 for semantic structure within a card/item
+        const heading = document.createElement("h3");
+        heading.textContent = itemName;
+        placeDiv.appendChild(heading);
 
         const p = document.createElement("p");
-        p.textContent = `Similarity: ${similarity.toFixed(3)}`;
+        // Check if similarity is a valid number before formatting
+        const similarityText = typeof similarity === 'number' ? similarity.toFixed(3) : 'N/A';
+        p.textContent = `Similarity: ${similarityText}`;
         placeDiv.appendChild(p);
 
-        const starRating = createStarRating(similarity);
-        placeDiv.insertAdjacentHTML('beforeend', starRating); // Add rating to the place
+        // Add star rating only if similarity is a valid number
+        if (typeof similarity === 'number') {
+            const starRatingDiv = document.createElement('div');
+            starRatingDiv.classList.add('star-rating'); // Add class for styling
+            starRatingDiv.innerHTML = createStarRating(similarity);
+            placeDiv.appendChild(starRatingDiv);
+        }
 
         return placeDiv;
     }
+
 
     // --- Display Recommendations Function ---
     function displayRecommendations(recommendations) {
@@ -204,15 +364,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         console.log(`Fetching ${N} recommendations for user ${userId} (Types: ${selectedTypes.join(', ') || 'None'})`);
 
-        // Optional: Handle case where no type is selected if required by backend
         if (selectedTypes.length === 0) {
-            console.warn("No recommendation type selected. Sending empty array.");
-            // If your backend requires at least one type, you might want to show a message
+            console.warn("No recommendation type selected.");
+            // Decide if you want to proceed or show a message
             // recommendationsDiv.innerHTML = "<p>Please select at least one recommendation type.</p>";
             // return;
         }
 
-        // Show loading indicator *before* the fetch call
         recommendationsDiv.innerHTML = '<p>Loading recommendations...</p>';
 
         try {
@@ -223,39 +381,35 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 body: JSON.stringify({
                     userId: userId,
-                    num_recommendations: N, // Use the global N variable
+                    num_recommendations: N,
                     recommendation_types: selectedTypes,
                 }),
             });
 
             if (!response.ok) {
-                // Try to get error message from backend response body
                 let errorData = null;
-                try {
-                    errorData = await response.json();
-                } catch (e) { /* Ignore if body isn't valid JSON */ }
+                try { errorData = await response.json(); } catch (e) { /* Ignore */ }
                 const errorMessage = errorData?.error || `HTTP error! status: ${response.status}`;
                 throw new Error(errorMessage);
             }
 
             const data = await response.json();
-            // Ensure the backend response has the expected structure
             if (data && data.recommendations) {
                  displayRecommendations(data.recommendations);
             } else {
                 console.error("Unexpected response format from backend:", data);
-                displayRecommendations([]); // Display empty state
+                displayRecommendations([]);
             }
 
         } catch (error) {
             console.error("Error fetching recommendations:", error);
-            recommendationsDiv.innerHTML = `<p>Error loading recommendations: ${error.message}</p>`; // Show error message
+            recommendationsDiv.innerHTML = `<p>Error loading recommendations: ${error.message}</p>`;
         }
     }
 
+
     // --- Initial State Setup ---
-    // The main app is hidden via CSS/inline style initially.
+    // Login form is shown by default (HTML/CSS handles hiding others)
     // fetchTitle() is called above.
-    // No initial recommendation fetch, waits for login.
 
 }); // End DOMContentLoaded

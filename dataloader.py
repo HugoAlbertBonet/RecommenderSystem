@@ -65,6 +65,30 @@ def add_user_data(userid,
   # Add a single row using the append() method
   try:
     file.loc[len(file)] = new_user
+    file.to_csv("data/usuarios_datos_personales.csv", sep=";", index=False, header=False)
     return 1
   except:
       return 0
+  
+def add_user_preferences(userid, ratings):
+    try:
+      file = pd.read_csv("data/usuarios_preferencias.csv", sep=";", header=None)
+      for k, v in ratings.items():
+          if v > 0:
+              file.loc[len(file)] = [userid, int(k), v]
+      file.to_csv("data/usuarios_preferencias.csv", sep=";", index=False, header=False)
+      return 1
+    except:
+        return 0
+    
+    
+def get_individual_users():
+    try:
+        file =  pd.read_csv("data/usuarios_datos_personales.csv", sep=";", header=None)
+        # Return a list of dictionaries username: userid
+        users = []
+        for i in range(len(file)):
+            users.append({"name": str(file.iloc[i, 1]), "user_id": int(file.iloc[i, 0])})
+        return users
+    except:
+        return None

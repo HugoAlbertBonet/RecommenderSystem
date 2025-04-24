@@ -98,6 +98,10 @@ h2 {
     margin-top: 0; /* Remove default top margin */
 }
 
+h3 {
+    color: #c43e88;
+}
+
 /* Use this container if you have other general places */
 .places-container{
     display: flex;
