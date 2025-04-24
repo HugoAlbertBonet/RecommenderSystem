@@ -20,6 +20,11 @@ body {
     width: fit-content;     /* Prevent stretching unnecessarily */
 }
 
+#groupMembersSelect option:checked {
+    background-color: #c43e88; /* Your desired background color */
+    color: white;             /* Change text color for better contrast */
+}
+
 /* Style for the number of recommendations group */
 .num-recommendations-control {
     display: flex;
