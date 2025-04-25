@@ -62,14 +62,15 @@ def get_title():
 @app.route("/register", methods=["POST"])
 def register():
     data = request.get_json()
-    user_identifier = data.get("userId")
-    user_name = data.get("user_name")
-    userAge = data.get("userAge")
-    userGender = data.get("userGender")
-    userJob = data.get("userJob")
-    userChildren = data.get("userChildren")
-    userChildrenOld = data.get("userChildrenOld")
-    userChildrenYoung = data.get("userChildrenYoung")
+    user_identifier = data.get("user_id")
+    user_name = data.get("name")
+    userAge = data.get("age")
+    userGender = data.get("gender")
+    userJob = data.get("job")
+    userChildren = data.get("children")
+    userChildrenOld = data.get("children_old")
+    userChildrenYoung = data.get("children_young")
+    print(userAge)
     try: 
         userAge = int(userAge)
     except:
