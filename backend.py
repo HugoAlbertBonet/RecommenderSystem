@@ -63,7 +63,6 @@ def get_title():
 def register():
     data = request.get_json()
     user_identifier = data.get("userId")
-    password = data.get("password")
     user_name = data.get("user_name")
     userAge = data.get("userAge")
     userGender = data.get("userGender")
@@ -96,7 +95,7 @@ def register():
     except:
         return jsonify({"error": "Children ages must be numbers"}), 400
 
-    answer = dataloader.add_user_password(user_identifier, password)
+    answer = dataloader.check_exists(user_identifier)
     if answer == 0:
         return jsonify({"error": "User already exists"}), 400
     answer = dataloader.add_user_data(user_identifier, 

@@ -46,7 +46,6 @@
             font-weight: bold;
         }
         .form-container input[type="text"],
-        .form-container input[type="password"],
         .form-container select { /* Add select styling */
             width: 100%;
             padding: 10px;
@@ -128,10 +127,6 @@
                 <label for="loginUserId">User ID:</label>
                 <input type="text" id="loginUserId" placeholder="Ingresa tu ID de usuario" required>
             </div>
-            <div>
-                <label for="loginPassword">Password:</label>
-                <input type="password" id="loginPassword" placeholder="Ingresa tu contraseña" required>
-            </div>
             <button id="loginButton">Login</button>
             <p id="login-error" class="form-message"></p>
             <a href="#" id="show-individual-register-link" class="toggle-link">¿Todavía no tienes una cuenta? Regístrate (Individual)</a>
@@ -185,14 +180,6 @@
             <div>
                 <label for="registerChildrenYoung">Youngest:</label>
                 <input type="text" id="registerChildrenYoung" placeholder="Ingresa la edad del más pequeño">
-            </div>
-            <div>
-                <label for="registerPassword">Password:</label>
-                <input type="password" id="registerPassword" placeholder="Choose a password" required>
-            </div>
-            <div>
-                <label for="registerConfirmPassword">Confirm Password:</label>
-                <input type="password" id="registerConfirmPassword" placeholder="Confirm your password" required>
             </div>
             <button id="registerButton">Register Individual</button> <!-- Updated Button Text -->
             <p id="register-message" class="form-message"></p>

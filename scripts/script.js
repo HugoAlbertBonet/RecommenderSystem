@@ -11,7 +11,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const groupRegisterForm = document.getElementById('group-register-form');
     const mainAppContent = document.getElementById('main-app-content');
     const loginUserIdInput = document.getElementById('loginUserId');
-    const loginPasswordInput = document.getElementById('loginPassword');
     const loginButton = document.getElementById('loginButton');
     const loginError = document.getElementById('login-error');
     const showIndividualRegisterLink = document.getElementById('show-individual-register-link');
@@ -24,8 +23,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const registerChildrenInput = document.getElementById('registerChildren');
     const registerChildrenOldInput = document.getElementById('registerChildrenOld');
     const registerChildrenYoungInput = document.getElementById('registerChildrenYoung');
-    const registerPasswordInput = document.getElementById('registerPassword');
-    const registerConfirmPasswordInput = document.getElementById('registerConfirmPassword');
     const registerButton = document.getElementById('registerButton');
     const registerMessage = document.getElementById('register-message');
     const showLoginLinkFromIndividual = document.getElementById('show-login-link-from-individual');
@@ -186,41 +183,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleLogin() {
         const userId = loginUserIdInput.value.trim();
-        const password = loginPasswordInput.value;
 
         loginError.textContent = ''; // Clear previous errors
         loginError.classList.remove('success'); // Ensure not green
 
-        if (!userId || !password) {
-            loginError.textContent = 'Please enter both User ID and Password.';
+        if (!userId) {
+            loginError.textContent = 'Por favor, ingrese su ID de usuario.';
             return;
         }
 
         // --- !!! IMPORTANT: LOGIN VALIDATION ---
         // Replace this with your actual validation logic (e.g., API call to /login)
-        const isValidLogin = validateCredentials(userId, password); // Placeholder
 
-        if (isValidLogin) {
-            // Login Successful
-            currentUserId = userId;
-            greetingDiv.textContent = `Welcome, User ${currentUserId}!`;
+        // Login Successful
+        currentUserId = userId;
+        greetingDiv.textContent = `Welcome, User ${currentUserId}!`;
 
-            loginScreen.style.display = 'none';
-            mainAppContent.style.display = 'block';
+        loginScreen.style.display = 'none';
+        mainAppContent.style.display = 'block';
 
-            recommendationsDiv.innerHTML = '<p>Loading recommendations...</p>';
-            getRecommendations(currentUserId);
+        recommendationsDiv.innerHTML = '<p>Loading recommendations...</p>';
+        getRecommendations(currentUserId);
 
-        } else {
-            // Login Failed
-            loginError.textContent = 'Invalid User ID or Password.';
-            loginPasswordInput.value = '';
-        }
-    }
-    function validateCredentials(userId, password) {
-        console.log(`Validating User: ${userId}`);
-        // --- !!! DUMMY CHECK - DO NOT USE IN PRODUCTION !!! ---
-        return userId.length > 0 && password.length > 0;
     }
 
     async function handleIndividualRegister(event) {
@@ -235,15 +219,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const children = registerChildrenInput.value.trim();
         const childrenOld = registerChildrenOldInput.value.trim();
         const childrenYoung = registerChildrenYoungInput.value.trim();
-        const password = registerPasswordInput.value;
-        const confirmPassword = registerConfirmPasswordInput.value;
         group_recommendations_flag = false;
 
-        if (!userId || !name || !age || !gender || !job || !children || !password || !confirmPassword) {
-            displayMessage(registerMessage, 'Please fill in all required fields.'); return;
-        }
-        if (password !== confirmPassword) {
-            displayMessage(registerMessage, 'Passwords do not match.'); return;
+        if (!userId || !name || !age || !gender || !job || !children) {
+            displayMessage(registerMessage, 'Por favor, rellene todos los campos obligatorios.'); return;
         }
         if (!['M', 'F'].includes(gender)) {
              displayMessage(registerMessage, 'Gender must be M or F.'); return;
@@ -256,7 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const registrationData = {
             user_id: userId, name: name, age: parseInt(age), gender: gender, job: parseInt(job),
             children: parseInt(children), children_old: childrenOld ? parseInt(childrenOld) : null,
-            children_young: childrenYoung ? parseInt(childrenYoung) : null, password: password, is_group: false
+            children_young: childrenYoung ? parseInt(childrenYoung) : null, is_group: false
         };
         console.log("Attempting individual registration with data:", registrationData);
 
@@ -295,7 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("Selected member IDs:", selectedMemberIds); // Log selected IDs
 
         if (!groupName) {
-            displayMessage(groupRegisterMessage, 'Please fill in all group details (ID, Name, Password).'); return;
+            displayMessage(groupRegisterMessage, 'Por favor, rellene todos los campos (Ctrl+Click para seleccionar varios usuarios).'); return;
         }
         if (selectedMemberIds.length === 0) {
             // Check if the select is actually enabled and has options
