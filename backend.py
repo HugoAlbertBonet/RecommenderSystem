@@ -278,7 +278,7 @@ def get_group_recommendations():
                                                            user_item_matrix, sim_matrix,
                                                            usuarios_historico, items_names,
                                                            preferencias, padres, items_clasificacion,
-                                                           datos_personales, grupos_preferencias
+                                                           datos_personales, grupos_preferencias,
                                                            base_weights=base_weights,
                                                            bonus_factor=0.1,
                                                            top_n=10)
