@@ -40,10 +40,10 @@ def hybrid_recommender(target_user,
                        user_item_matrix, sim_matrix, 
                        usuarios_historico, items_names, 
                        preferencias, padres, items_clasificacion,
+                       datos_personales, grupos_preferencias,
                        base_weights={'collaborative': 0.33, 'content': 0.33, 'demographic': 0.34},
                        bonus_factor=0.1,
-                       top_n=10,
-                       set_weights = None):
+                       top_n=10):
     """
     Combina de forma híbrida (y de manera dinámica) múltiples sistemas recomendadores:
       - Colaborativo
@@ -56,48 +56,29 @@ def hybrid_recommender(target_user,
     Retorna una lista de tuplas (id_item, score_híbrido) ordenadas de mayor a menor.
     """
     # Obtener recomendaciones de cada sistema
-    if (set_weights is not None and 
-        set_weights["collaborative"] == 0) or base_weights["collaborative"] == 0:
-        rec_collab, collab_count = {}, 0
-    else:
-        rec_collab, collab_count = get_collaborative_recommendations(user_item_matrix, sim_matrix, target_user)
-    
-    if (set_weights is not None and 
-        set_weights["content"] == 0) or base_weights["content"] == 0:
-        rec_content, content_count = {}, 0
-    else:
-        rec_content, content_count = get_content_recommendations(usuarios_historico, items_names,
+    rec_collab, collab_count = get_collaborative_recommendations(user_item_matrix, sim_matrix, target_user)
+    rec_content, content_count = get_content_recommendations(usuarios_historico, items_names,
                                                              preferencias, padres, items_clasificacion,
                                                              target_user, N=top_n)
+    rec_demo, demo_count = get_demographic_recommendations(target_user, datos_personales, grupos_preferencias,
+                                                          items_clasificacion, items_names, top_n=top_n)
 
-    if (set_weights is not None and 
-        set_weights["demographic"] == 0) or base_weights["demographic"] == 0:
-        rec_demo, demo_count = {}, 0
-    else:
-        rec_demo, demo_count = get_demographic_recommendations(target_user, N=top_n)
     # Calcular pesos dinámicos
-    if set_weights is not None:
-        dynamic_w = set_weights
-    else:
-        dynamic_w = compute_dynamic_weights(collab_count, content_count, demo_count, base_weights)
-    print("Pesos dinámicos:", dynamic_w)
+    dynamic_w = compute_dynamic_weights(collab_count, content_count, demo_count, base_weights)
     print("Vecinos colaborativos:", collab_count, "Recs contenido:", content_count, "Recs demográficas:", demo_count)
     
     # Combinar scores de todos los sistemas
     all_items = set(rec_collab.keys()) | set(rec_content.keys()) | set(rec_demo.keys())
     hybrid_scores = {}
+    
     for item in all_items:
         score = 0
-        sources = 0
         if item in rec_collab:
             score += dynamic_w['collaborative'] * rec_collab[item]
-            sources += 1
         if item in rec_content:
             score += dynamic_w['content'] * rec_content[item]
-            sources += 1
         if item in rec_demo:
             score += dynamic_w['demographic'] * rec_demo[item]
-            sources += 1
         hybrid_scores[item] = score
     
     # Ordenar y retornar las top_n recomendaciones

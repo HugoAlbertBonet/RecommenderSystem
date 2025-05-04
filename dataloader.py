@@ -28,8 +28,13 @@ def load_data(root = "data"):
     
     items_clasificacion = pd.read_csv(f"{root}/clasificacion_items.csv", sep=";", header=None)
     items_clasificacion.columns = ['id_item', 'id_preferencia', 'score']
+
+    datos_personales = pd.read_csv("usuarios_datos_personales.csv", sep=";")
+    datos_personales.columns = ['id', 'name', 'age','gender','job','children','younger','older']
     
-    return usuarios_historico, items_names, preferencias, padres, items_clasificacion
+    grupos_preferencias = pd.read_csv("preferencias_gpt_v1.csv", sep=";")
+    
+    return usuarios_historico, items_names, preferencias, padres, items_clasificacion, datos_personales, grupos_preferencias
 
 
 def check_exists(userid):
