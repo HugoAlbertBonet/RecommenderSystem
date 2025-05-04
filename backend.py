@@ -16,7 +16,7 @@ def update_data():
     padres, 
     items_clasificacion,
     datos_personales, 
-    grupos_preferencias,) = dataloader.load_data()
+    grupos_preferencias) = dataloader.load_data()
 
     # Crear la matriz usuario-ítem para el colaborativo
     user_item_matrix = usuarios_historico.pivot_table(index='id_user', columns='id_item', values='valoracion')
