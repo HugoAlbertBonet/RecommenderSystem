@@ -14,7 +14,9 @@ def update_data():
     (usuarios_historico, 
     items_names, preferencias, 
     padres, 
-    items_clasificacion) = dataloader.load_data()
+    items_clasificacion,
+    datos_personales, 
+    grupos_preferencias) = dataloader.load_data()
 
     # Crear la matriz usuario-ítem para el colaborativo
     user_item_matrix = usuarios_historico.pivot_table(index='id_user', columns='id_item', values='valoracion')
@@ -29,7 +31,9 @@ def update_data():
             items_names, 
             preferencias, 
             padres, 
-            items_clasificacion, 
+            items_clasificacion,
+            datos_personales, 
+            grupos_preferencias, 
             user_item_matrix, 
             all_items, 
             sim_matrix)
@@ -38,7 +42,9 @@ def update_data():
             items_names, 
             preferencias, 
             padres, 
-            items_clasificacion, 
+            items_clasificacion,
+            datos_personales, 
+            grupos_preferencias, 
             user_item_matrix, 
             all_items, 
             sim_matrix) = update_data()
@@ -177,6 +183,8 @@ def get_recommendations():
     global preferencias
     global padres
     global items_clasificacion
+    global datos_personales
+    global grupos_preferencias
     global user_item_matrix
     global all_items
     global sim_matrix
@@ -188,6 +196,8 @@ def get_recommendations():
             preferencias, 
             padres, 
             items_clasificacion, 
+            datos_personales, 
+            grupos_preferencias,
             user_item_matrix, 
             all_items, 
             sim_matrix) = update_data()
@@ -210,6 +220,7 @@ def get_recommendations():
         raw_recommendations = hybrid_recommender(user_id, user_item_matrix, sim_matrix,
                                          usuarios_historico, items_names,
                                          preferencias, padres, items_clasificacion,
+                                         datos_personales, grupos_preferencias,
                                          base_weights=base_weights,
                                          bonus_factor=0.1,
                                          top_n=num_recommendations,
@@ -231,6 +242,8 @@ def get_group_recommendations():
     global preferencias
     global padres
     global items_clasificacion
+    global datos_personales
+    global grupos_preferencias
     global user_item_matrix
     global all_items
     global sim_matrix
@@ -242,6 +255,8 @@ def get_group_recommendations():
             preferencias, 
             padres, 
             items_clasificacion, 
+            datos_personales, 
+            grupos_preferencias,
             user_item_matrix, 
             all_items, 
             sim_matrix) = update_data()
@@ -263,6 +278,7 @@ def get_group_recommendations():
                                                            user_item_matrix, sim_matrix,
                                                            usuarios_historico, items_names,
                                                            preferencias, padres, items_clasificacion,
+                                                           datos_personales, grupos_preferencias,
                                                            base_weights=base_weights,
                                                            bonus_factor=0.1,
                                                            top_n=10)

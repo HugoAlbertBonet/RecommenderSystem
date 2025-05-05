@@ -1,0 +1,116 @@
+id;name;parent;padre;Menores de 25 sin hijos;Jubilados (>60);menores de 40 con hijos;25/40 sin hijos;mujeres entre 40 y 60;hombres entre 40 y 60
+1;Estilos y periodos;0;#N/D;0;70;0;40;50;40
+2;Compras;0;#N/D;50;50;40;50;70;40
+3;Museos;0;#N/D;0;85;30;30;50;35
+4;Espacios Abiertos;0;#N/D;70;80;80;60;60;50
+5;Arquitectura religiosa;0;#N/D;0;75;20;0;40;0
+6;Arquitectura defensiva;0;#N/D;0;60;25;0;0;0
+7;Arquitectura civil;0;#N/D;0;65;30;0;0;0
+8;Gastronomia;0;#N/D;60;80;70;70;80;75
+9;Deportes;0;#N/D;70;0;50;65;20;60
+10;Monumentos;0;#N/D;0;60;20;0;30;0
+11;Ocio;0;#N/D;80;40;85;85;60;60
+12;Salud y SPA;0;#N/D;0;75;20;30;85;40
+13;Eventos;0;#N/D;60;45;70;60;50;55
+14;Niños;0;#N/D;0;0;100;0;0;0
+15;Patrimonio de la Humanidad;0;#N/D;0;85;30;0;40;30
+16;Prehistórico;1;Estilos y periodos;0;0;30;0;0;0
+17;Árabe;1;Estilos y periodos;0;0;0;0;0;0
+18;Romano;1;Estilos y periodos;0;65;20;0;0;0
+19;Medieval;1;Estilos y periodos;0;70;25;0;0;0
+20;Gótico;1;Estilos y periodos;0;70;0;0;0;0
+21;Románico;1;Estilos y periodos;0;0;0;0;0;0
+22;Renacentista;1;Estilos y periodos;0;0;0;0;0;0
+23;Barroco;1;Estilos y periodos;0;0;0;0;0;0
+24;Rococo;1;Estilos y periodos;0;0;0;0;0;0
+25;Neoclásico;1;Estilos y periodos;0;0;0;0;0;0
+26;Modernista;1;Estilos y periodos;0;0;0;0;0;0
+27;Contemporáneo;1;Estilos y periodos;0;0;0;0;0;0
+28;Parques;4;Espacios Abiertos;0;85;90;50;60;50
+29;Jardines botánicos;4;Espacios Abiertos;0;90;40;0;65;0
+30;Parque infantil;4;Espacios Abiertos;0;0;100;0;0;0
+31;Playas;4;Espacios Abiertos;70;70;85;75;70;70
+32;Lagos;4;Espacios Abiertos;30;75;70;50;50;50
+33;Calles y plazas;4;Espacios Abiertos;50;80;60;40;45;30
+34;Paseos;4;Espacios Abiertos;0;85;50;30;55;30
+35;Parques temáticos;4;Espacios Abiertos;80;0;95;40;0;0
+36;Otros espacios abiertos;4;Espacios Abiertos;0;0;0;0;0;0
+37;Cines;11;Ocio;0;0;50;50;45;40
+38;Teatros;11;Ocio;10;50;40;20;50;30
+39;Conciertos y música en vivo;11;Ocio;40;0;60;75;60;60
+40;Clubs y discotecas;11;Ocio;95;0;0;85;20;50
+41;Bares y pubs;11;Ocio;80;0;20;80;30;70
+42;Discotecas;11;Ocio;95;0;0;85;0;50
+43;Música clasica;11;Ocio;0;70;0;0;45;0
+44;Ópera;11;Ocio;0;60;0;0;40;0
+45;Restaurantes;8;Gastronomia;60;80;75;70;80;80
+46;Eventos;8;Gastronomia;0;0;0;0;0;0
+47;Tiendas especializadas;2;Compras;0;55;40;45;65;40
+48;Tiendas tradicionales;2;Compras;0;60;50;40;70;40
+49;Otras compras;2;Compras;0;0;0;0;0;0
+50;Exposiciones;13;Eventos;0;0;20;0;40;0
+51;Conferencias;13;Eventos;0;0;0;0;0;0
+52;Ferias;13;Eventos;60;0;60;50;50;50
+53;Congresos;13;Eventos;0;0;0;0;0;0
+54;Fiestas;13;Eventos;90;0;60;80;0;50
+55;Grandes eventos (exposiciones);13;Eventos;0;0;0;0;0;0
+56;Eventos deportivos;13;Eventos;75;0;65;65;0;65
+57;Nauticos;9;Deportes;0;0;50;40;0;45
+58;Grandes eventos;9;Deportes;0;0;0;50;0;0
+59;Futbol;9;Deportes;80;0;70;60;0;75
+60;Baloncesto;9;Deportes;0;0;50;50;0;60
+61;Otros deportes;9;Deportes;0;0;40;50;0;50
+62;Arte;3;Museos;0;85;20;0;50;0
+63;Ciencia y tecnología;3;Museos;0;0;50;0;0;0
+64;Historia;3;Museos;0;85;20;0;50;30
+65;Religión;3;Museos;0;70;0;0;30;0
+66;Ciencias naturales;3;Museos;0;0;50;0;0;0
+67;Arqueologia;3;Museos;0;0;30;0;0;0
+68;Historia y cultura local;3;Museos;0;75;25;0;40;30
+69;Artesanía;3;Museos;0;0;0;0;50;0
+70;Militar;3;Museos;0;0;0;0;0;20
+71;Otros museos;3;Museos;0;0;0;0;0;0
+72;Catedrales;5;Arquitectura religiosa;0;80;0;0;0;0
+73;Iglesias;5;Arquitectura religiosa;0;80;0;0;0;0
+74;Conventos;5;Arquitectura religiosa;0;0;0;0;0;0
+75;Monasterios;5;Arquitectura religiosa;0;0;0;0;0;0
+76;Claustros;5;Arquitectura religiosa;0;0;0;0;0;0
+77;Sinagogas;5;Arquitectura religiosa;0;0;0;0;0;0
+78;Mezquitas;5;Arquitectura religiosa;0;0;0;0;0;0
+79;Campanarios;5;Arquitectura religiosa;0;0;0;0;0;0
+80;Cementerios;5;Arquitectura religiosa;0;0;0;0;0;0
+81;Tumbas;5;Arquitectura religiosa;0;0;0;0;0;0
+82;Criptas;5;Arquitectura religiosa;0;0;0;0;0;0
+83;Abadías;5;Arquitectura religiosa;0;0;0;0;0;0
+84;Basílica;5;Arquitectura religiosa;0;0;0;0;0;0
+85;Capilla;5;Arquitectura religiosa;0;0;0;0;0;0
+86;Colegiata;5;Arquitectura religiosa;0;0;0;0;0;0
+87;Castillos;6;Arquitectura defensiva;0;60;50;0;0;0
+88;Torres;6;Arquitectura defensiva;0;0;30;0;0;0
+89;Murallas;6;Arquitectura defensiva;0;0;20;0;0;0
+90;Puertas;6;Arquitectura defensiva;0;0;0;0;0;0
+91;Palacio;7;Arquitectura civil;0;65;40;0;0;0
+92;Casa;7;Arquitectura civil;0;0;0;0;0;0
+93;Centro histórico;7;Arquitectura civil;20;80;40;0;40;30
+94;Ateneo;7;Arquitectura civil;0;0;0;0;0;0
+95;Mercados;7;Arquitectura civil;0;60;50;0;60;50
+96;Edificios gubernamentales;7;Arquitectura civil;0;0;0;0;0;0
+97;Edificios académicos;7;Arquitectura civil;0;0;0;0;0;0
+98;Otros edificios públicos;7;Arquitectura civil;0;0;0;0;0;0
+99;Estaciones de transportes;7;Arquitectura civil;0;0;30;0;0;0
+100;Atarazanas;7;Arquitectura civil;0;0;0;0;0;0
+101;Puentes;7;Arquitectura civil;0;0;30;0;0;0
+102;Faros;7;Arquitectura civil;0;0;40;0;0;0
+103;Estadios y áreas deportivas;7;Arquitectura civil;40;0;60;55;0;60
+104;Otros edificios emblemáticos;7;Arquitectura civil;0;0;0;0;0;0
+105;Esculturas;10;Monumentos;0;0;0;0;0;0
+106;Fuentes;4;Espacios Abiertos;0;0;30;0;0;0
+107;Otros monumentos;10;Monumentos;0;0;0;0;0;0
+108;Centros de salud y spa;12;Salud y SPA;0;75;0;0;85;40
+109;Otros salud y spa;12;Salud y SPA;0;0;0;0;0;0
+110;Otras arquitecturas defensivas;6;Arquitectura defensiva;0;0;0;0;0;0
+111;Otras arquitectura religiosa;5;Arquitectura religiosa;0;0;0;0;0;0
+112;Otros eventos;13;Eventos;0;0;0;0;0;0
+113;Otros gastronomía;8;Gastronomia;0;0;0;0;0;0
+114;Otros ocio;11;Ocio;0;0;0;0;0;0
+115;Otros estilos;1;Estilos y periodos;0;0;0;0;0;0

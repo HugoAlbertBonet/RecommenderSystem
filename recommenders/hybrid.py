@@ -40,6 +40,7 @@ def hybrid_recommender(target_user,
                        user_item_matrix, sim_matrix, 
                        usuarios_historico, items_names, 
                        preferencias, padres, items_clasificacion,
+                       datos_personales, grupos_preferencias,
                        base_weights={'collaborative': 0.33, 'content': 0.33, 'demographic': 0.34},
                        bonus_factor=0.1,
                        top_n=10,
@@ -74,7 +75,8 @@ def hybrid_recommender(target_user,
         set_weights["demographic"] == 0) or base_weights["demographic"] == 0:
         rec_demo, demo_count = {}, 0
     else:
-        rec_demo, demo_count = get_demographic_recommendations(target_user, N=top_n)
+        rec_demo, demo_count = get_demographic_recommendations(target_user, datos_personales, grupos_preferencias,
+                                                          items_clasificacion, items_names, top_n=top_n)
     # Calcular pesos dinámicos
     if set_weights is not None:
         dynamic_w = set_weights
