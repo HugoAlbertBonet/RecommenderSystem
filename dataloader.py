@@ -1,6 +1,6 @@
 import pandas as pd
 import json
-
+import random
 # =============================================================================
 # FUNCIONES DE CARGA DE DATOS
 # =============================================================================
@@ -93,3 +93,41 @@ def get_individual_users():
         return users
     except:
         return None
+
+def get_random_items(n=20):
+    _, items_names, *_ = load_data()
+    all_ids = items_names['id_item'].tolist()
+    sample = random.sample(all_ids, n)
+    return items_names[items_names['id_item'].isin(sample)][['id_item','name_item']]
+
+import pandas as pd
+
+import pandas as pd
+
+def add_user_visits(user_id, visits):
+    """
+    1) Lee todas las valoraciones de usuarios.
+    2) Añade las nuevas visitas.
+    3) Sobreescribe el CSV sin cabecera ni índice.
+    """
+    # (a) Cargo el histórico completo que luego lee load_data()
+    df = pd.read_csv(
+        "data/puntuaciones_usuario_base.csv",
+        sep=";", header=None,
+        names=["id_user", "id_item", "valoracion"]
+    )
+
+    # (b) Armo el DataFrame de las visitas recibidas
+    nuevos = pd.DataFrame([
+        {"id_user": user_id, "id_item": v["id_item"], "valoracion": v["valoracion"]}
+        for v in visits
+    ])
+
+    # (c) Concateno y reescribo CSV SIN cabecera ni índice
+    df = pd.concat([df, nuevos], ignore_index=True)
+    df.to_csv(
+        "data/puntuaciones_usuario_base.csv",
+        sep=";", header=False, index=False
+    )
+
+    return True

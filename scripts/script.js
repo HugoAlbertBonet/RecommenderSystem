@@ -36,7 +36,65 @@ document.addEventListener('DOMContentLoaded', () => {
     const recommendationsDiv = document.getElementById('recommendations');
     const numRecommendationsSelect = document.getElementById('numRecommendations');
     const recommendationTypeCheckboxes = document.querySelectorAll('input[name="recommendationType"]');
+    // → Nuevo bloque para visitas
+    const visitsForm          = document.getElementById('visits-form');
+    const visitsQuestionsDiv  = document.getElementById('visits-questions');
+    const submitVisitsButton  = document.getElementById('submitVisitsButton');
+    const visitsMessage       = document.getElementById('visits-message');
 
+
+    // ► Aquí pegas tu nuevo bloque ◄
+    // Elementos del dropdown de usuario
+    const userSelect  = document.getElementById('userSelect');
+    const userDetails = document.getElementById('userDetails');
+    const prefsList   = document.getElementById('prefsList');
+    const visitsList  = document.getElementById('visitsList');
+
+    // 1) Rellenar el dropdown con usuarios
+    async function populateUserSelect() {
+      const resp = await fetch(`${API_URL}/get_individual_users`);
+      const { users } = await resp.json();
+      users.forEach(u => {
+        const opt = document.createElement('option');
+        opt.value = u.user_id;
+        opt.textContent = `${u.name} (${u.user_id})`;
+        userSelect.appendChild(opt);
+      });
+    }
+
+    // 2) Al cambiar de usuario, mostrar preferencias y visitas
+    userSelect.addEventListener('change', async () => {
+      const uid = userSelect.value;
+      if (!uid) return;
+      userDetails.style.display = 'block';
+      prefsList.innerHTML  = '<li>Cargando…</li>';
+      visitsList.innerHTML = '<li>Cargando…</li>';
+
+      // Fetch preferencias
+      try {
+        const res1 = await fetch(`${API_URL}/user_preferences/${uid}`);
+        const { preferences } = await res1.json();
+        prefsList.innerHTML = preferences.length
+          ? preferences.map(p => `<li>${p.name} (Score: ${p.score})</li>`).join('')
+          : '<li>No hay preferencias positivas.</li>';
+      } catch {
+        prefsList.innerHTML = '<li>Error al cargar preferencias.</li>';
+      }
+
+      // Fetch visitas
+      try {
+        const res2 = await fetch(`${API_URL}/user_visits/${uid}`);
+        const { visits } = await res2.json();
+        visitsList.innerHTML = visits.length
+          ? visits.map(v => `<li>${v.name_item} – Val: ${v.valoracion}, Visitas: ${v.visitas}</li>`).join('')
+          : '<li>No hay visitas registradas.</li>';
+      } catch {
+        visitsList.innerHTML = '<li>Error al cargar visitas.</li>';
+      }
+    });
+
+    // Inicializar al cargar la página
+    populateUserSelect();
     // --- State Variables ---
     let N = parseInt(numRecommendationsSelect.value);
     let group_recommendations_flag = false;
@@ -98,6 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+       
     async function fetchIndividualUsers() {
         console.log(`Fetching individual users from ${API_URL}/get_individual_users`);
         const response = await fetch(`${API_URL}/get_individual_users`);
@@ -118,6 +177,31 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("Parsed user list:", userList);
         return userList;
     }
+  async function populateEvalUsers() {
+    try {
+        const response = await fetch(`${API_URL}/get_individual_users`);
+        if (!response.ok) throw new Error('Failed to fetch users for evaluation.');
+        const data = await response.json();
+        const users = data.users || [];
+
+        evalUsersSelect.innerHTML = ''; // Limpia anteriores
+        users.forEach(user => {
+            if (user && user.user_id && user.name) {
+                const option = document.createElement('option');
+                option.value = user.user_id;
+                option.textContent = `${user.name} (${user.user_id})`;
+                evalUsersSelect.appendChild(option);
+            }
+        });
+
+        if (users.length === 0) {
+            evalUsersSelect.innerHTML = '<option disabled>No users found</option>';
+        }
+    } catch (error) {
+        console.error('Error loading evaluation users:', error);
+        evalUsersSelect.innerHTML = '<option disabled>Error loading users</option>';
+    }
+}
 
     function populateUserDropdown(users) {
         groupMembersSelect.innerHTML = ''; // Clear existing options
@@ -173,39 +257,85 @@ document.addEventListener('DOMContentLoaded', () => {
         groupMembersLoadingError.style.display = 'none';
     }
 
+    async function loadVisitsQuestions(userId) {
+        const resp = await fetch(`${API_URL}/visits_to_rate?userId=${userId}`);
+        const { items } = await resp.json();
+        visitsQuestionsDiv.innerHTML = '';
+        items.forEach(item => {
+          visitsQuestionsDiv.innerHTML += `
+            <div class="visit-question">
+              <p>¿Has visitado "<strong>${item.name}</strong>"?</p>
+              <select data-id-item="${item.id_item}" class="visit-select">
+                <option value="">Seleccione</option>
+                <option value="no">No</option>
+                <option value="yes">Sí</option>
+              </select>
+              <div class="rating-input" style="display:none; margin-top:5px;">
+                <label>Valoración (1–7):</label>
+                <input type="number" min="1" max="7" data-id-item="${item.id_item}" class="rating-input-field">
+              </div>
+            </div>
+          `;
+        });
+      }
+
+    
+      
+
     function displayMessage(element, message, isSuccess = false) {
         element.textContent = message;
         element.className = isSuccess ? 'form-message success' : 'form-message';
         element.style.display = 'block';
     }
-
+  
     // --- Event Handlers ---
 
-    function handleLogin() {
+    async function handleLogin() {
         const userId = loginUserIdInput.value.trim();
-
-        loginError.textContent = ''; // Clear previous errors
-        loginError.classList.remove('success'); // Ensure not green
-
+        loginError.textContent = '';
+    
         if (!userId) {
             loginError.textContent = 'Por favor, ingrese su ID de usuario.';
             return;
         }
-
-        // --- !!! IMPORTANT: LOGIN VALIDATION ---
-        // Replace this with your actual validation logic (e.g., API call to /login)
-
-        // Login Successful
+    
+        // Login “exitoso”
         currentUserId = userId;
         greetingDiv.textContent = `Welcome, User ${currentUserId}!`;
-
+    
+        // 1) Ocultamos SOLO los formularios de login/registro,
+        //    NO todo #login-screen
+        loginForm.style.display = 'none';
+        individualRegisterForm.style.display = 'none';
+        groupRegisterForm.style.display = 'none';
+    
+        // 2) Comprobamos si ya hay visitas registradas
+        let hasVisits = false;
+        try {
+            const resp = await fetch(`${API_URL}/user_visits/${currentUserId}`);
+            if (resp.ok) {
+                const { visits } = await resp.json();
+                hasVisits = Array.isArray(visits) && visits.length > 0;
+            }
+        } catch (err) {
+            console.error('Error comprobando visitas:', err);
+            // si falla la llamada, asumimos que tiene visitas para no bloquear el flujo
+            hasVisits = true;
+        }
+    
+        if (!hasVisits) {
+            // 3) Usuario nuevo: mostramos el form de visitas dentro de #login-screen
+            visitsForm.style.display = 'block';
+            loadVisitsQuestions(currentUserId);
+            return;
+        }
+    
+        // 4) Usuario con visitas: cerramos #login-screen y entramos en la app
         loginScreen.style.display = 'none';
-        mainAppContent.style.display = 'block';
-
-        recommendationsDiv.innerHTML = '<p>Loading recommendations...</p>';
+        showMainApp();
         getRecommendations(currentUserId);
-
     }
+    
 
     async function handleIndividualRegister(event) {
         event.preventDefault();
@@ -457,53 +587,78 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // --- Create Place Element Function ---
-    function createPlaceElement(itemName, similarity) {
-        const placeDiv = document.createElement("div");
-        // Using the class name from your previous version that worked for styling
-        placeDiv.classList.add("place");
-        placeDiv.classList.add("recommendation"); // Keep both if needed, or just the one your CSS uses
+   // Create a card for each recommendation, using all returned fields
+// --- Create Place Element Function ---
 
-        // Use h3 for semantic structure within a card/item
-        const heading = document.createElement("h3");
-        heading.textContent = itemName;
-        placeDiv.appendChild(heading);
-
-        const p = document.createElement("p");
-        // Check if similarity is a valid number before formatting
-        const similarityText = typeof similarity === 'number' ? similarity.toFixed(3) : 'N/A';
-        p.textContent = `Similarity: ${similarityText}`;
-        placeDiv.appendChild(p);
-
-        // Add star rating only if similarity is a valid number
-        if (typeof similarity === 'number') {
-            const starRatingDiv = document.createElement('div');
-            starRatingDiv.classList.add('star-rating'); // Add class for styling
-            starRatingDiv.innerHTML = createStarRating(similarity);
-            placeDiv.appendChild(starRatingDiv);
-        }
-
-        return placeDiv;
+function createPlaceElement(item) {
+    const placeDiv = document.createElement("div");
+    placeDiv.classList.add("place");
+  
+    // Título
+    const h3 = document.createElement("h3");
+    h3.textContent = item.name;
+    placeDiv.appendChild(h3);
+  
+    // Score híbrido
+    const scoreP = document.createElement("p");
+    scoreP.textContent = `Score combinado: ${item.hybrid_score.toFixed(3)}`;
+    placeDiv.appendChild(scoreP);
+  
+    // Bloque de explicación
+    const exp = document.createElement("div");
+    exp.classList.add("explanation");
+    let html = "";
+  
+    // ─── CONTENT ────────────────────────────────────
+    if (item.sim_score !== undefined) {
+      html += `
+        <span style="color:#1976d2;">● Similitud preferencias:</span> ${item.sim_score.toFixed(3)}<br>
+        <span style="color:#1976d2;">● Concordancia historial:</span> ${item.hist_score.toFixed(3)}<br>
+        <span style="color:#1976d2;">● Popularidad (visitas):</span> ${item.vis_score.toFixed(3)}<br>
+      `;
     }
-
-
-    // --- Display Recommendations Function ---
-    function displayRecommendations(recommendations) {
-        recommendationsDiv.innerHTML = ""; // Clear previous recommendations or loading message
-
-        if (recommendations && Array.isArray(recommendations) && recommendations.length > 0) {
-            recommendations.forEach(item => {
-                // Assuming your backend returns 'name' and 'similarity'
-                if (item && typeof item.name !== 'undefined' && typeof item.similarity !== 'undefined') {
-                    const placeElement = createPlaceElement(item.name, item.similarity);
-                    recommendationsDiv.appendChild(placeElement);
-                } else {
-                    console.warn("Received recommendation item in unexpected format:", item);
-                }
-            });
-        } else {
-            recommendationsDiv.innerHTML = "<p>No recommendations found or error fetching data.</p>"; // More informative message
-        }
+  
+    // ─── COLLABORATIVE ──────────────────────────────
+    if (item.neighbor_count !== undefined) {
+      html += `
+        <span style="color:#ff5722;">■ Vecinos considerados:</span> ${item.neighbor_count}<br>
+        <span style="color:#ff5722;">■ Media rating vecinos:</span> ${item.neighbor_mean_rating.toFixed(2)}<br>
+      `;
     }
+  
+    // ─── DEMOGRAPHIC  (nuevo) ───────────────────────
+    if (item.group !== undefined) {
+      html += `
+        <span style="color:#9c27b0;">◆ Grupo demográfico:</span> ${item.group}<br>
+        <span style="color:#9c27b0;">◆ Justificación:</span> ${item.explanation}<br>
+      `;
+    }
+  
+    exp.innerHTML = html;
+    placeDiv.appendChild(exp);
+  
+    return placeDiv;
+  }
+  
+      
+  
+  
+  // --- Display Recommendations Function ---
+  function displayRecommendations(recommendations) {
+    recommendationsDiv.innerHTML = ""; // Limpia
+  
+    if (!Array.isArray(recommendations) || recommendations.length === 0) {
+      recommendationsDiv.innerHTML = "<p>No se encontraron recomendaciones.</p>";
+      return;
+    }
+  
+    recommendations.forEach(item => {
+      const card = createPlaceElement(item);
+      recommendationsDiv.appendChild(card);
+    });
+  }
+  
+  
 
 
     
@@ -531,6 +686,48 @@ document.addEventListener('DOMContentLoaded', () => {
     if (numRecommendationsSelect) { numRecommendationsSelect.addEventListener('change', handleNChange); }
     if (recommendationTypeCheckboxes) { recommendationTypeCheckboxes.forEach(checkbox => { checkbox.addEventListener('change', handleTypeChange); }); }
 
+    visitsQuestionsDiv.addEventListener('change', e => {
+        if (e.target.classList.contains('visit-select')) {
+          const id = e.target.dataset.idItem;
+          const ratingDiv = e.target.closest('.visit-question').querySelector('.rating-input');
+          ratingDiv.style.display = e.target.value === 'yes' ? 'block' : 'none';
+        }
+      });
+      submitVisitsButton.addEventListener('click', async () => {
+        const visitsData = [];
+        document.querySelectorAll('.visit-question').forEach(div => {
+          const sel = div.querySelector('.visit-select');
+          if (sel.value === 'yes') {
+            const val = div.querySelector('.rating-input-field').value;
+            visitsData.push({
+              id_item:   parseInt(sel.dataset.idItem),
+              valoracion: parseInt(val)
+            });
+          }
+        });
+        const resp = await fetch(`${API_URL}/submit_visits`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: currentUserId,
+            visits: visitsData
+          })
+        });
+        const data = await resp.json();
+        if (resp.ok) {
+          visitsMessage.textContent = 'Visitas registradas correctamente.';
+          visitsMessage.className = 'form-message success';
+          setTimeout(() => {
+            visitsForm.style.display = 'none';
+            showMainApp();
+            getRecommendations(currentUserId);
+          }, 1000);
+        } else {
+          visitsMessage.textContent = `Error: ${data.error}`;
+          visitsMessage.className = 'form-message';
+        }
+      });
+      
     // --- Initial State ---
     // (Keep structure as before)
     const storedUserId = localStorage.getItem('userId');
@@ -545,5 +742,153 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("No stored user found. Showing login form.");
         showLoginForm();
     }
+
+// --- Evaluación y Gráficos ---
+const evaluateButton = document.getElementById('evaluateButton');
+const thrRecommendedInput = document.getElementById('thrRecommended');
+const thrRelevantInput   = document.getElementById('thrRelevant');
+const evalUsersSelect    = document.getElementById('evalUsers');
+populateEvalUsers();
+// Instancia vacías para luego destruir si vuelves a dibujar
+let prChart, f1Chart, maeChart;
+
+evaluateButton.addEventListener('click', async () => {
+  const selectedOptions = Array.from(evalUsersSelect.selectedOptions);
+  const userIds = selectedOptions.map(o => o.value);
+  const types   = Array.from(document.querySelectorAll('input[name="recommendationType"]:checked'))
+                         .map(cb => cb.value);
+  const n       = parseInt(numRecommendationsSelect.value);
+  const thrRec = parseFloat(
+    thrRecommendedInput.value.trim().replace(',', '.')
+  );
+  const thrRel = parseFloat(
+    thrRelevantInput.value.trim().replace(',', '.')
+  );
+
+  if (userIds.length === 0) {
+    alert('Selecciona al menos un usuario para evaluar.');
+    return;
+  }
+  if (types.length === 0) {
+    alert('Selecciona al menos un tipo de recomendación.');
+    return;
+  }
+
+  try {
+    console.log("Intentando hacer fetch a:", `${API_URL}/evaluate`);
+    console.log("Body que se envía:", {
+      userIds: userIds,
+      recommendation_types: types,
+      num_recommendations: n,
+      threshold_recommended: thrRec,
+      threshold_relevant: thrRel
+    });
+
+    const resp = await fetch(`${API_URL}/evaluate`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        userIds: userIds,
+        recommendation_types: types,
+        num_recommendations: n,
+        threshold_recommended: thrRec,
+        threshold_relevant: thrRel
+      })
+    });
+
+    console.log("Estado HTTP:", resp.status);
+
+    if (!resp.ok) {
+      const errorResponse = await resp.text();
+      console.error("Respuesta de error recibida:", errorResponse);
+      throw new Error(`Fetch fallido: ${resp.status} - ${errorResponse}`);
+    }
+
+    const { metrics } = await resp.json();
+    console.log("Métricas recibidas:", metrics);
+
+    // Prepara etiquetas y datasets
+    const algos = Object.keys(metrics);
+    const labels = userIds;
+    const prDatasets = [], f1Datasets = [], maeDatasets = [];
+
+    algos.forEach(algo => {
+      const precisions = labels.map(uid => metrics[algo][uid].precision);
+      const recalls    = labels.map(uid => metrics[algo][uid].recall);
+      const f1s        = labels.map(uid => metrics[algo][uid].f1);
+      const maes       = labels.map(uid => metrics[algo][uid].mae ?? 0);
+
+      prDatasets.push({
+        label: `${algo} - Precisión`,
+        data: precisions,
+        fill: false,
+        tension: 0.1
+      });
+      prDatasets.push({
+        label: `${algo} - Recall`,
+        data: recalls,
+        fill: false,
+        tension: 0.1
+      });
+      f1Datasets.push({
+        label: algo,
+        data: f1s,
+        fill: false,
+        tension: 0.1
+      });
+      maeDatasets.push({
+        label: algo,
+        data: maes,
+        fill: false,
+        tension: 0.1
+      });
+    });
+
+    if (prChart) prChart.destroy();
+    if (f1Chart) f1Chart.destroy();
+    if (maeChart) maeChart.destroy();
+
+    prChart = new Chart(
+      document.getElementById('precisionRecallChart').getContext('2d'),
+      {
+        type: 'line',
+        data: { labels, datasets: prDatasets },
+        options: {
+          plugins: { title: { display: true, text: 'Precisión y Recall por Usuario' } },
+          scales: { y: { beginAtZero: true, max: 1 } }
+        }
+      }
+    );
+
+    f1Chart = new Chart(
+      document.getElementById('f1Chart').getContext('2d'),
+      {
+        type: 'line',
+        data: { labels, datasets: f1Datasets },
+        options: {
+          plugins: { title: { display: true, text: 'F1-Score por Usuario' } },
+          scales: { y: { beginAtZero: true, max: 1 } }
+        }
+      }
+    );
+
+    maeChart = new Chart(
+      document.getElementById('maeChart').getContext('2d'),
+      {
+        type: 'line',
+        data: { labels, datasets: maeDatasets },
+        options: {
+          plugins: { title: { display: true, text: 'MAE por Usuario' } },
+          scales: { y: { beginAtZero: true } }
+        }
+      }
+    );
+
+  } catch (err) {
+    console.error('❌ Error en evaluación:', err);
+    alert('❌ Error al obtener métricas: ' + err.message);
+  }
+});
+
 
 }); // End DOMContentLoaded

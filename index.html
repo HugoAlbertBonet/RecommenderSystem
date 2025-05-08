@@ -10,29 +10,26 @@
         /* --- Login/Register Screen Styles --- */
         #login-screen {
             background-image: url('images/wallpaper3.jpg');
-            display: flex; /* Use flexbox for centering */
+            display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            min-height: 100vh; /* Full viewport height */
+            min-height: 100vh;
             padding: 20px;
-            box-sizing: border-box; /* Include padding in height/width */
-            background-color: #f4f4f4; /* Light background */
+            box-sizing: border-box;
+            background-color: #f4f4f4;
         }
-
-        /* Common form container style */
         .form-container {
             background: white;
             padding: 30px;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             text-align: center;
-            width: 100%; /* Take full width of parent */
-            max-width: 400px; /* Max width for the form */
+            width: 100%;
+            max-width: 400px;
             box-sizing: border-box;
-            margin-bottom: 20px; /* Add some space between forms if they were visible */
+            margin-bottom: 20px;
         }
-
         .form-container h2 {
             margin-top: 0;
             margin-bottom: 20px;
@@ -46,22 +43,21 @@
             font-weight: bold;
         }
         .form-container input[type="text"],
-        .form-container select { /* Add select styling */
+        .form-container input[type="number"],
+        .form-container select {
             width: 100%;
             padding: 10px;
             margin-bottom: 15px;
             border: 1px solid #ccc;
             border-radius: 4px;
-            box-sizing: border-box; /* Include padding in width */
+            box-sizing: border-box;
         }
-        /* Style for multi-select */
         .form-container select[multiple] {
-            min-height: 100px; /* Give it some height */
-            overflow-y: auto; /* Add scroll if needed */
+            min-height: 100px;
+            overflow-y: auto;
         }
-
         .form-container button {
-            background-color: #c43e88; /* Green */
+            background-color: #c43e88;
             color: white;
             padding: 10px 20px;
             border: none;
@@ -69,33 +65,28 @@
             cursor: pointer;
             font-size: 16px;
             transition: background-color 0.3s ease;
-            width: 100%; /* Make button full width */
-            margin-bottom: 15px; /* Space below button */
+            width: 100%;
+            margin-bottom: 15px;
         }
         .form-container button:hover {
             background-color: #4cae4c;
         }
-
-        /* Error/Message styling */
         .form-message {
             color: red;
             margin-top: 15px;
-            min-height: 1em; /* Reserve space */
+            min-height: 1em;
             font-size: 0.9em;
         }
         .form-message.success {
-             color: green;
+            color: green;
         }
-        .form-message.loading { /* Style for loading messages */
+        .form-message.loading {
             color: #555;
             font-style: italic;
         }
-
-
-        /* Toggle links */
         .toggle-link {
             display: block;
-            margin-top: 10px; /* Adjusted margin */
+            margin-top: 10px;
             color: #007bff;
             cursor: pointer;
             text-decoration: none;
@@ -104,22 +95,22 @@
         .toggle-link:hover {
             text-decoration: underline;
         }
-
-        /* Initially hide register forms and main app */
-        #individual-register-form, /* Updated ID */
-        #group-register-form,      /* Added ID */
+        #individual-register-form,
+        #group-register-form,
         #main-app-content {
             display: none;
         }
-        /* --- End Login/Register Styles --- */
-
+        #userDetails h3 {
+      color: #333 !important;
+    }
+    #userDetails ul li {
+      color: #333 !important;
+    }
     </style>
 </head>
 <body>
-
     <!-- Login/Register Screen -->
     <div id="login-screen">
-
         <!-- Login Form -->
         <div id="login-form" class="form-container">
             <h2>Login</h2>
@@ -132,10 +123,9 @@
             <a href="#" id="show-individual-register-link" class="toggle-link">¿Todavía no tienes una cuenta? Regístrate (Individual)</a>
             <a href="#" id="show-group-register-link" class="toggle-link">¿Quieres registrar un grupo? Regístrate (Grupo)</a>
         </div>
-
-        <!-- Individual Registration Form (Initially Hidden) -->
-        <div id="individual-register-form" class="form-container"> <!-- Updated ID -->
-            <h2>Registrar Cuenta Individual</h2> <!-- Updated Heading -->
+        <!-- Individual Registration Form -->
+        <div id="individual-register-form" class="form-container">
+            <h2>Registrar Cuenta Individual</h2>
             <div>
                 <label for="registerUserId">User ID:</label>
                 <input type="text" id="registerUserId" placeholder="Elige un ID de usuario" required>
@@ -181,39 +171,40 @@
                 <label for="registerChildrenYoung">Youngest:</label>
                 <input type="text" id="registerChildrenYoung" placeholder="Ingresa la edad del más pequeño">
             </div>
-            <button id="registerButton">Register Individual</button> <!-- Updated Button Text -->
+            <button id="registerButton">Register Individual</button>
             <p id="register-message" class="form-message"></p>
-            <a href="#" id="show-login-link-from-individual" class="toggle-link">Already have an account? Login</a> <!-- Updated ID for clarity -->
+            <a href="#" id="show-login-link-from-individual" class="toggle-link">Already have an account? Login</a>
         </div>
-
-        <!-- Group Registration Form (Initially Hidden) -->
+        <!-- Group Registration Form -->
         <div id="group-register-form" class="form-container">
             <h2>Registrar Cuenta de Grupo</h2>
             <div>
                 <label for="groupRegisterName">Group Name:</label>
                 <input type="text" id="groupRegisterName" placeholder="Ingresa el nombre del grupo" required>
             </div>
-            <!-- New Section for Member Selection -->
             <div>
                 <label for="groupMembersSelect">Select Group Members:</label>
                 <select id="groupMembersSelect" name="groupMembers" multiple required>
-                    <!-- Options will be populated by JavaScript -->
                     <option value="" disabled>Loading available users...</option>
                 </select>
-                <p id="group-members-loading-error" class="form-message" style="display: none;"></p> <!-- Area for loading errors -->
+                <p id="group-members-loading-error" class="form-message" style="display: none;"></p>
             </div>
             <button id="groupRegisterButton">Register Group</button>
             <p id="group-register-message" class="form-message"></p>
-            <a href="#" id="show-login-link-from-group" class="toggle-link">Already have an account? Login</a> <!-- Unique ID -->
+            <a href="#" id="show-login-link-from-group" class="toggle-link">Already have an account? Login</a>
         </div>
-
-    </div> <!-- End of login-screen -->
-
-
-    <!-- Main Application Content (Initially Hidden) -->
+        <div id="visits-form" class="form-container" style="display:none;">
+            <h2>¿Has visitado estos sitios?</h2>
+            <div id="visits-questions">
+              <!-- Aquí inyectaremos las preguntas -->
+            </div>
+            <button id="submitVisitsButton">Enviar valoraciones de visitas</button>
+            <p id="visits-message" class="form-message"></p>
+          </div>
+    </div>
+    <!-- Main Application Content -->
     <div id="main-app-content">
-        <!-- ... (rest of your main app content remains the same) ... -->
-         <header>
+        <header>
             <h1>Discover Valencia</h1>
             <p>Explore the best places to visit in Valencia!</p>
             <div id="greeting"></div>
@@ -243,14 +234,50 @@
                     </div>
                 </div>
             </div>
+            <!-- Selección de usuario para ver detalles -->
+                <div class="form-container" style="max-width:300px; margin:1em 0;">
+                    <label for="userSelect">Ver datos de usuario:</label>
+                    <select id="userSelect">
+                    <option value="" disabled selected>Elige un usuario…</option>
+                    </select>
+                </div>
+                <div id="userDetails" class="form-container" style="display:none;">
+                    <h3>Preferencias</h3>
+                    <ul id="prefsList"></ul>
+                    <h3>Visitas</h3>
+                    <ul id="visitsList"></ul>
+                </div>
+  
         </header>
         <main id="places" class="places-container">
             <div id="recommendations"></div>
+            <!-- Evaluación -->
+            <div id="evaluation-section" class="form-container">
+                <h2>Evaluación</h2>
+                <div>
+                    <label for="evalUsers">Usuarios a evaluar:</label>
+                    <select id="evalUsers" multiple></select>
+                </div>
+                <div>
+                    <label for="thrRecommended">Umbral recomendados (0–7):</label>
+                    <input type="number" id="thrRecommended" min="0" max="7" step="0.1" value="4.0">
+                </div>
+                <div>
+                    <label for="thrRelevant">Umbral relevantes (0–7):</label>
+                    <input type="number" id="thrRelevant" min="0" max="7" step="0.1" value="4.0">
+                </div>
+                <button id="evaluateButton">Evaluar</button>
+            </div>
+            <!-- Gráficas de evaluación -->
+            <div id="evaluationResults" style="width:100%; max-width:800px; margin: auto;">
+                <canvas id="precisionRecallChart"></canvas>
+                <canvas id="f1Chart"></canvas>
+                <canvas id="maeChart"></canvas>
+            </div>
         </main>
-    </div> <!-- End of main-app-content -->
-
+    </div>
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="scripts/script.js"></script>
 </body>
 </html>
-
-
