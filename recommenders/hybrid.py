@@ -31,7 +31,10 @@ def hybrid_recommender(
     datos_personales, grupos_preferencias,
     base_weights={'collaborative':0.33,'content':0.33,'demographic':0.34},
     top_n=10,
-    set_weights=None
+    set_weights=None,
+    content_alpha=0.33,
+   content_beta=0.33,
+   content_gamma=0.34
 ):
 
     # ─── 1) Pesos finales ───────────────────────────────────────────
@@ -41,7 +44,8 @@ def hybrid_recommender(
         # counts para dynamic weights
         _, _, content_count = get_content_recommendations(
             usuarios_historico, items_names, preferencias, padres,
-            items_clasificacion, target_user, N=top_n
+            items_clasificacion, target_user, N=top_n, alpha = content_alpha,
+            beta = content_beta, gamma = content_gamma
         )
         _, collab_count, _ = get_collaborative_recommendations(
             user_item_matrix, sim_matrix, target_user
@@ -63,7 +67,9 @@ def hybrid_recommender(
     if w['content'] > 0:
         rec_content, content_details, content_count = get_content_recommendations(
             usuarios_historico, items_names, preferencias, padres,
-            items_clasificacion, target_user, N=top_n
+            items_clasificacion, target_user, N=top_n, alpha=content_alpha,
+            beta=content_beta,
+            gamma=content_gamma
         )
     else:
         rec_content, content_details, content_count = {}, {}, 0

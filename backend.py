@@ -244,6 +244,12 @@ def get_recommendations():
         user_id = int(data.get("userId"))
         num_recommendations = data.get("num_recommendations")
         selectedTypes = data.get("recommendation_types", [])
+        alpha = float(data.get("alpha", 0.33))
+        beta  = float(data.get("beta",  0.33))
+        gamma = float(data.get("gamma", 0.34))
+        # (Opcional) validar que sumen 1
+        if abs((alpha + beta + gamma) - 1.0) > 1e-3:
+            return jsonify({"error": "alpha + beta + gamma deben sumar 1.00"}), 400
 
         print("Selected Types:", selectedTypes)
 
@@ -274,7 +280,10 @@ def get_recommendations():
             grupos_preferencias= grupos_preferencias,
             base_weights       = base_weights,
             top_n              = num_recommendations,
-            set_weights        = set_weights
+            set_weights        = set_weights,
+            content_alpha=          alpha,
+            content_beta=           beta,
+            content_gamma=          gamma
         )
 
         # Formatear salida
@@ -369,6 +378,12 @@ def evaluate():
         n        = int(d.get("num_recommendations", 10))
         thr_rec  = float(d.get("threshold_recommended", 4.0))
         thr_rel  = float(d.get("threshold_relevant",    4.0))
+        alpha = float(d.get("alpha", 0.33))
+        beta  = float(d.get("beta",  0.33))
+        gamma = float(d.get("gamma", 0.34))
+        # (Opcional) validar que sumen 1
+        if abs((alpha + beta + gamma) - 1.0) > 1e-3:
+            return jsonify({"error": "alpha + beta + gamma deben sumar 1.00"}), 400
     except Exception:
         return jsonify({"error": "Payload inválido"}), 400
 
@@ -409,10 +424,13 @@ def evaluate():
                 grupos_preferencias,
                 base_weights=weights,
                 top_n=200,
-                set_weights=set_w
+                set_weights=None,
+                content_alpha=          alpha,
+                content_beta=           beta,
+                content_gamma=          gamma
             )
             #  raw  ➜  [{'id_item': .., 'hybrid_score': .., ...}, ...]
-
+            
             # --- seleccionar recomendaciones relevantes según umbral --------
             rec_rel = { r['id_item'] for r in raw if r['hybrid_score'] >= thr_rec }
 
@@ -427,14 +445,18 @@ def evaluate():
             f1     = (2*prec*recall)/(prec+recall) if (prec+recall)>0 else 0.0
 
             # MAE sobre predicciones escaladas (solo si ≥ thr_rec)
+            # MAE sobre predicciones escaladas (solo si ≥ thr_rec)
             y_true, y_pred = [], []
             for r in raw:
                 if r['hybrid_score'] < thr_rec:
                     continue
-                y_pred.append(1 + r['hybrid_score']*6)        # escala 1‑7
                 fila = test_u[test_u['id_item'] == r['id_item']]
-                y_true.append(float(fila['valoracion'].iloc[0]) if not fila.empty else 0.0)
+                if fila.empty:
+                    continue    # descartamos ítems sin valoración real
+                y_pred.append(1 + r['hybrid_score']*6)        # escala 1-7
+                y_true.append(float(fila['valoracion'].iloc[0]))
             mae = mean_absolute_error(y_true, y_pred) if y_pred else None
+
 
             results[algo][uid] = {
                 "precision": round(prec, 4),
@@ -629,6 +651,6 @@ def submit_visits():
     data_up_to_date = False
 
     return jsonify({"message": "Visitas registradas correctamente"})
-    
+
 if __name__ == "__main__":
     app.run(debug=True)

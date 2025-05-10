@@ -462,6 +462,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const typeCheckboxes = document.querySelectorAll('input[name="recommendationType"]:checked');
         const selectedTypes = Array.from(typeCheckboxes).map(checkbox => checkbox.value);
 
+
+        const alpha = parseFloat(document.getElementById('alphaInput').value) || 0;
+        const beta  = parseFloat(document.getElementById('betaInput').value)  || 0;
+        const gamma = parseFloat(document.getElementById('gammaInput').value) || 0;
+        // Validar que sumen 1
+        if (Math.abs((alpha + beta + gamma) - 1) > 0.001) {
+        alert('α + β + γ deben sumar 1.00');
+        return;
+        }
         console.log(`Fetching ${N} recommendations for user ${userId} (Types: ${selectedTypes.join(', ') || 'None'})`);
 
         if (selectedTypes.length === 0) {
@@ -483,7 +492,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     userId: userId,
                     num_recommendations: N,
                     recommendation_types: selectedTypes,
-                }),
+                    alpha: alpha,
+                    beta:  beta,
+                    gamma: gamma
+                  }),
             });
 
             if (!response.ok) {
@@ -784,6 +796,15 @@ evaluateButton.addEventListener('click', async () => {
       threshold_relevant: thrRel
     });
 
+    
+    const alpha = parseFloat(document.getElementById('alphaInput').value) || 0;
+    const beta  = parseFloat(document.getElementById('betaInput').value)  || 0;
+    const gamma = parseFloat(document.getElementById('gammaInput').value) || 0;
+    // Validar suma = 1
+    if (Math.abs((alpha + beta + gamma) - 1) > 0.001) {
+    alert('α + β + γ deben sumar 1.00');
+    return;
+}
     const resp = await fetch(`${API_URL}/evaluate`, {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
@@ -792,7 +813,10 @@ evaluateButton.addEventListener('click', async () => {
         recommendation_types: types,
         num_recommendations: n,
         threshold_recommended: thrRec,
-        threshold_relevant: thrRel
+        threshold_relevant: thrRel,
+        alpha: alpha,
+        beta:  beta,
+        gamma: gamma
       })
     });
 
