@@ -33,33 +33,18 @@ def hybrid_recommender(
     top_n=10,
     set_weights=None
 ):
-
-    # ─── 1) Pesos finales ───────────────────────────────────────────
+    
     if set_weights is not None:
         w = set_weights
     else:
-        # counts para dynamic weights
-        _, _, content_count = get_content_recommendations(
-            usuarios_historico, items_names, preferencias, padres,
-            items_clasificacion, target_user, N=top_n
-        )
-        _, collab_count, _ = get_collaborative_recommendations(
-            user_item_matrix, sim_matrix, target_user
-        )
-        demo_list = get_demographic_recommendations(
-            target_user, datos_personales, grupos_preferencias,
-            items_clasificacion, items_names, top_n=top_n
-        ) or []
-        demo_count = len(demo_list)
+        w = base_weights
 
-        w = compute_dynamic_weights(collab_count, content_count, demo_count, base_weights)
-
-    # ─── 2) Collaborative ──────────────────────────────────────────
+    # ─── 1) Collaborative ──────────────────────────────────────────
     rec_collab, collab_count, collab_mean = \
         (get_collaborative_recommendations(user_item_matrix, sim_matrix, target_user)
          if w['collaborative']>0 else ({},0,{}))
 
-    # ─── 3) Content‑Based ──────────────────────────────────────────
+    # ─── 2) Content‑Based ──────────────────────────────────────────
     if w['content'] > 0:
         rec_content, content_details, content_count = get_content_recommendations(
             usuarios_historico, items_names, preferencias, padres,
@@ -68,7 +53,7 @@ def hybrid_recommender(
     else:
         rec_content, content_details, content_count = {}, {}, 0
 
-    # ─── 4) Demográfico ────────────────────────────────────────────
+    # ─── 3) Demográfico ────────────────────────────────────────────
     if w['demographic'] > 0:
         demo_list = get_demographic_recommendations(
             target_user, datos_personales, grupos_preferencias,
@@ -79,6 +64,10 @@ def hybrid_recommender(
         demo_detail = {d['id_item']: d for d in demo_list}
     else:
         rec_demo, demo_detail, demo_count = {}, {}, 0
+
+        # ─── 1) Pesos finales ───────────────────────────────────────────
+    if set_weights is None:
+        w = compute_dynamic_weights(collab_count, content_count, demo_count, base_weights)
 
     # ─── 5) Combinar ──────────────────────────────────────────────
     all_items   = set(rec_collab)|set(rec_content)|set(rec_demo)
@@ -116,3 +105,4 @@ def hybrid_recommender(
     hybrid_list.sort(key=lambda x: x['hybrid_score'], reverse=True)
     print(hybrid_list)
     return hybrid_list[:top_n]
+
