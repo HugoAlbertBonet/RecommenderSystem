@@ -29,7 +29,7 @@ def load_data(root = "data"):
     items_clasificacion = pd.read_csv(f"{root}/clasificacion_items.csv", sep=";", header=None)
     items_clasificacion.columns = ['id_item', 'id_preferencia', 'score']
 
-    datos_personales = pd.read_csv(f"{root}/usuarios_datos_personales.csv", sep=";")
+    datos_personales = pd.read_csv(f"{root}/usuarios_datos_personales.csv", sep=";", header = None)
     datos_personales.columns = ['id', 'name', 'age','gender','job','children','younger','older']
     
     grupos_preferencias = pd.read_csv(f"{root}/preferencias_gpt_v1.csv", sep=";")
