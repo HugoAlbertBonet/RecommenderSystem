@@ -6,7 +6,9 @@ def compute_dynamic_weights(collab_neighbors, content_count, demo_count, base_we
     expected = collab_neighbors + min(20, content_count)
     f_collab  = min(1, collab_neighbors  / expected) if expected>0 else 1
     f_content = min(1, min(20, content_count) / expected) if expected>0 else 1
-    f_demo    = 0.2
+    f_demo    = 0.2 if demo_count > 0 else 0
+    print(collab_neighbors, content_count, expected)
+    print(f_collab, f_content)
 
     w = {
         'collaborative': base_weights['collaborative'] * f_collab,
@@ -68,6 +70,7 @@ def hybrid_recommender(
         # ─── 1) Pesos finales ───────────────────────────────────────────
     if set_weights is None:
         w = compute_dynamic_weights(collab_count, content_count, demo_count, base_weights)
+        print(w)
 
     # ─── 5) Combinar ──────────────────────────────────────────────
     all_items   = set(rec_collab)|set(rec_content)|set(rec_demo)
@@ -103,6 +106,6 @@ def hybrid_recommender(
         hybrid_list.append(entry)
 
     hybrid_list.sort(key=lambda x: x['hybrid_score'], reverse=True)
-    print(hybrid_list)
+    #print(hybrid_list)
     return hybrid_list[:top_n]
 

@@ -1,13 +1,13 @@
 from flask import Flask, jsonify, request
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 import pandas as pd
-from sklearn.metrics.pairwise import cosine_similarity
-import numpy as np
 from recommenders.collaborative import compute_user_similarity
 from recommenders.hybrid import hybrid_recommender
 from recommenders.group import group_hybrid_recommender_with_aggregation
 import dataloader
 import random
+from sklearn.metrics import mean_absolute_error
+
 is_group = False
 
 def update_data():
@@ -110,7 +110,7 @@ def register():
     userChildren = data.get("children")
     userChildrenOld = data.get("children_old")
     userChildrenYoung = data.get("children_young")
-    print(userAge)
+    #print(userAge)
     try: 
         userAge = int(userAge)
     except:
@@ -328,12 +328,6 @@ def get_recommendations():
 ##########################################
 ###### Evaluación usando mismas SR ######
 ##########################################
-from flask import Flask, jsonify, request
-from flask_cors import CORS, cross_origin
-from flask import Flask, jsonify, request
-import pandas as pd
-from sklearn.metrics import mean_absolute_error
-from recommenders.hybrid import hybrid_recommender
 
 
 CORS(app)  # Esto SIEMPRE va después de definir app
