@@ -2,64 +2,96 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
 
-def get_demographic_recommendations(target_user, datos_personales, grupos_preferencias, 
-                                   items_clasificacion, items_names, top_n=10):
+def get_demographic_recommendations(target_user,
+                                    datos_personales,
+                                    grupos_preferencias,
+                                    items_clasificacion,
+                                    items_names,
+                                    top_n=10):
     """
     Genera recomendaciones basadas en características demográficas del usuario.
-    
-    El proceso consta de tres etapas principales:
-    1. Clasificación del usuario en un grupo demográfico según edad, género y situación familiar.
-    2. Obtención del vector de preferencias típicas del grupo asignado.
-    3. Cálculo de similitud coseno entre las preferencias del grupo y los ítems disponibles.
-
-    Retorna un diccionario {id_item: score} y el número de ítems recomendados.
+    Devuelve una lista de dicts con:
+      - id_item
+      - name_item
+      - demo_score       (similitud demográfica)
+      - group            (nombre de grupo demográfico)
+      - explanation      (texto explicativo)
     """
-    # Convertir items_clasificacion a matriz
-    items_group = items_clasificacion.groupby(['id_item', 'id_preferencia'], as_index=False).mean()
-    matriz_items = items_group.pivot(index='id_item', columns='id_preferencia', values='score')
+    # 1) Prepara matriz ítem×preferencia
+    items_group = (
+        items_clasificacion
+        .groupby(['id_item','id_preferencia'], as_index=False)
+        .mean()
+    )
+    matriz_items = items_group.pivot(
+        index='id_item', columns='id_preferencia', values='score'
+    )
     columnas_deseadas = list(range(1, 116))
-    matriz_items = matriz_items.reindex(columns=columnas_deseadas, fill_value=0).fillna(0)
-    
-    # Asignar vector demográfico (función interna)
-    def asignar_vector(id_usuario):
-        usuario = datos_personales[datos_personales["id"] == id_usuario]
-        if usuario.empty:
-            print(f"Usuario {id_usuario} no encontrado en datos demográficos.")
-            return pd.Series([0]*115)
-        
-        matriz_grupos = grupos_preferencias.set_index("padre").T
-        
-        usuario = usuario.iloc[0]
-        edad = usuario["age"]
-        hijos = usuario["children"]
-        genero = usuario["gender"]
-        
-        # Reglas de asignación
+    matriz_items = (
+        matriz_items
+        .reindex(columns=columnas_deseadas, fill_value=0)
+        .fillna(0)
+    )
+
+    # 2) Asigna usuario a grupo y extrae vector de preferencias del grupo
+    def asignar_vector_y_grupo(uid):
+        user_row = datos_personales[datos_personales['id']==uid]
+        if user_row.empty:
+            return None, None
+        u = user_row.iloc[0]
+        edad, hijos, genero = u['age'], u['children'], u['gender']
+        # reglas
         if edad <= 25 and hijos == 0:
-            grupo = "Menores de 25 sin hijos"
+            grp = "Menores de 25 sin hijos"
         elif edad >= 60:
-            grupo = "Jubilados (>60)"
+            grp = "Jubilados (>60)"
         elif edad <= 40 and hijos == 1:
-            grupo = "menores de 40 con hijos"
+            grp = "menores de 40 con hijos"
         elif 25 <= edad <= 40 and hijos == 0:
-            grupo = "25/40 sin hijos"
-        elif 40 <= edad <= 60 and genero == "F":
-            grupo = "mujeres entre 40 y 60"
-        elif 40 <= edad <= 60 and genero == "M":
-            grupo = "hombres entre 40 y 60"
+            grp = "25/40 sin hijos"
+        elif 40 <= edad <= 60 and genero == 'F':
+            grp = "mujeres entre 40 y 60"
+        elif 40 <= edad <= 60 and genero == 'M':
+            grp = "hombres entre 40 y 60"
         else:
-            return pd.Series([0]*matriz_grupos.shape[0], index=matriz_grupos.index)
-        # Devuelve el vector de preferencias o ceros si no encuentra el grupo
-        return grupos_preferencias.get(grupo, pd.Series([0]*matriz_grupos.shape[0], index=matriz_grupos.index)).values
-    
-    vector_usuario = asignar_vector(target_user)
-    if vector_usuario.sum() == 0:  # No se encontró grupo
-        return {}, 0
-    
-    # Calcular similitud coseno
-    similitudes = cosine_similarity(matriz_items, vector_usuario.reshape(1, -1)).flatten()
-    scores = pd.Series(similitudes, index=matriz_items.index)
-    
-    # Ordenar y devolver top N
-    top_items = scores.sort_values(ascending=False).head(top_n)
-    return top_items.to_dict(), len(top_items)
+            return None, None
+        # extrae vector del grupo
+        if grp not in grupos_preferencias.columns:
+            return None, None
+        vec = grupos_preferencias.T.loc[grp].values
+        print(grupos_preferencias.columns)
+        return vec, grp
+
+    vector, group = asignar_vector_y_grupo(target_user)
+    print(group, vector)
+    if vector is None:
+        return []  # no asignado a ningún grupo
+
+    # 3) Calcula similitud coseno ítems vs. vector del grupo
+    sims = cosine_similarity(
+        matriz_items.values,
+        vector.reshape(1, -1)
+    ).flatten()
+    scores = pd.Series(sims, index=matriz_items.index)
+
+    # 4) Selecciona top_n
+    top = scores.nlargest(top_n)
+
+    # 5) Construye lista de recomendaciones con detalles
+    recs = []
+    for item_id, score in top.items():
+        name = items_names.loc[
+            items_names['id_item']==item_id, 'name_item'
+        ].iat[0]
+        recs.append({
+            "id_item":    int(item_id),
+            "name_item":  name,
+            "demo_score": float(round(score, 4)),
+            "group":      group,
+            "explanation": (
+                f"Usuario asignado al grupo “{group}”. "
+                f"El índice demográfico de este ítem es {round(score, 4)}."
+            )
+        })
+
+    return recs

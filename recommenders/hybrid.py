@@ -1,107 +1,108 @@
 from recommenders.collaborative import get_collaborative_recommendations
 from recommenders.content_dynamic import get_content_recommendations
-from recommenders.demographic import get_demographic_recommendations
+from recommenders.demographic   import get_demographic_recommendations
 
-# =============================================================================
-# CÁLCULO DE PESOS DINÁMICOS
-# =============================================================================
 def compute_dynamic_weights(collab_neighbors, content_count, demo_count, base_weights):
-    """
-    Ajusta los pesos base según la disponibilidad de información.
-    Si el usuario tiene pocos vecinos similares, se reduce el peso colaborativo,
-    y se compensan con los otros sistemas.
-    """
-    expected_neighbors = collab_neighbors+content_count
-    factor_collab = min(1, collab_neighbors / expected_neighbors) if expected_neighbors > 0 else 1
-    
-    expected_content = collab_neighbors+content_count
-    factor_content = min(1, content_count / expected_content) if expected_content > 0 else 1
-    
-    expected_demo = 5  # Umbral esperado para el demográfico
-    factor_demo = min(1, demo_count / expected_demo) if expected_demo > 0 else 1
-    
-    dynamic_weights = {
-        'collaborative': base_weights.get('collaborative', 0) * factor_collab,
-        'content': base_weights.get('content', 0) * factor_content,
-        'demographic': base_weights.get('demographic', 0) * factor_demo
+    expected = collab_neighbors + min(20, content_count)
+    f_collab  = min(1, collab_neighbors  / expected) if expected>0 else 1
+    f_content = min(1, min(20, content_count) / expected) if expected>0 else 1
+    f_demo    = 0.2
+
+    w = {
+        'collaborative': base_weights['collaborative'] * f_collab,
+        'content':       base_weights['content']       * f_content,
+        'demographic':   base_weights['demographic']   * f_demo
     }
-    total = sum(dynamic_weights.values())
-    if total > 0:
-        for key in dynamic_weights:
-            dynamic_weights[key] /= total
+    total = sum(w.values())
+    if total>0:
+        for k in w: w[k] /= total
     else:
-        dynamic_weights = {key: 1/3 for key in ['collaborative', 'content', 'demographic']}
-    return dynamic_weights
+        w = {k: 1/3 for k in w}
+    return w
 
-# =============================================================================
-# FUNCIÓN HÍBRIDA PARA COMBINAR RECOMENDACIONES
-# =============================================================================
-def hybrid_recommender(target_user, 
-                       user_item_matrix, sim_matrix, 
-                       usuarios_historico, items_names, 
-                       preferencias, padres, items_clasificacion,
-                       datos_personales, grupos_preferencias,
-                       base_weights={'collaborative': 0.33, 'content': 0.33, 'demographic': 0.34},
-                       bonus_factor=0.1,
-                       top_n=10,
-                       set_weights = None):
-    """
-    Combina de forma híbrida (y de manera dinámica) múltiples sistemas recomendadores:
-      - Colaborativo
-      - Basado en contenido
-      - Demográfico (stub)
-    
-    Se ajustan los pesos dinámicamente según la información disponible
-    (por ejemplo, si el usuario tiene pocos vecinos similares, se le da menos peso al colaborativo).
-    
-    Retorna una lista de tuplas (id_item, score_híbrido) ordenadas de mayor a menor.
-    """
-    # Obtener recomendaciones de cada sistema
-    if (set_weights is not None and 
-        set_weights["collaborative"] == 0) or base_weights["collaborative"] == 0:
-        rec_collab, collab_count = {}, 0
-    else:
-        rec_collab, collab_count = get_collaborative_recommendations(user_item_matrix, sim_matrix, target_user)
-    
-    if (set_weights is not None and 
-        set_weights["content"] == 0) or base_weights["content"] == 0:
-        rec_content, content_count = {}, 0
-    else:
-        rec_content, content_count = get_content_recommendations(usuarios_historico, items_names,
-                                                             preferencias, padres, items_clasificacion,
-                                                             target_user, N=top_n)
 
-    if (set_weights is not None and 
-        set_weights["demographic"] == 0) or base_weights["demographic"] == 0:
-        rec_demo, demo_count = {}, 0
-    else:
-        rec_demo, demo_count = get_demographic_recommendations(target_user, datos_personales, grupos_preferencias,
-                                                          items_clasificacion, items_names, top_n=top_n)
-    # Calcular pesos dinámicos
+
+
+def hybrid_recommender(
+    target_user,
+    user_item_matrix, sim_matrix,
+    usuarios_historico, items_names,
+    preferencias, padres, items_clasificacion,
+    datos_personales, grupos_preferencias,
+    base_weights={'collaborative':0.33,'content':0.33,'demographic':0.34},
+    top_n=10,
+    set_weights=None
+):
+    
     if set_weights is not None:
-        dynamic_w = set_weights
+        w = set_weights
     else:
-        dynamic_w = compute_dynamic_weights(collab_count, content_count, demo_count, base_weights)
-    print("Pesos dinámicos:", dynamic_w)
-    print("Vecinos colaborativos:", collab_count, "Recs contenido:", content_count, "Recs demográficas:", demo_count)
-    
-    # Combinar scores de todos los sistemas
-    all_items = set(rec_collab.keys()) | set(rec_content.keys()) | set(rec_demo.keys())
-    hybrid_scores = {}
+        w = base_weights
+
+    # ─── 1) Collaborative ──────────────────────────────────────────
+    rec_collab, collab_count, collab_mean = \
+        (get_collaborative_recommendations(user_item_matrix, sim_matrix, target_user)
+         if w['collaborative']>0 else ({},0,{}))
+
+    # ─── 2) Content‑Based ──────────────────────────────────────────
+    if w['content'] > 0:
+        rec_content, content_details, content_count = get_content_recommendations(
+            usuarios_historico, items_names, preferencias, padres,
+            items_clasificacion, target_user, N=top_n
+        )
+    else:
+        rec_content, content_details, content_count = {}, {}, 0
+
+    # ─── 3) Demográfico ────────────────────────────────────────────
+    if w['demographic'] > 0:
+        demo_list = get_demographic_recommendations(
+            target_user, datos_personales, grupos_preferencias,
+            items_clasificacion, items_names, top_n=top_n
+        ) or []
+        demo_count  = len(demo_list)
+        rec_demo    = {d['id_item']: d['demo_score'] for d in demo_list}
+        demo_detail = {d['id_item']: d for d in demo_list}
+    else:
+        rec_demo, demo_detail, demo_count = {}, {}, 0
+
+        # ─── 1) Pesos finales ───────────────────────────────────────────
+    if set_weights is None:
+        w = compute_dynamic_weights(collab_count, content_count, demo_count, base_weights)
+
+    # ─── 5) Combinar ──────────────────────────────────────────────
+    all_items   = set(rec_collab)|set(rec_content)|set(rec_demo)
+    hybrid_list = []
+
     for item in all_items:
-        score = 0
-        sources = 0
+        score_h = (w['collaborative']*rec_collab.get(item,0) +
+                   w['content']      *rec_content.get(item,0) +
+                   w['demographic']  *rec_demo.get(item,0))
+
+        entry = {'id_item': item, 'hybrid_score': score_h}
+
         if item in rec_collab:
-            score += dynamic_w['collaborative'] * rec_collab[item]
-            sources += 1
+            entry['neighbor_count']       = collab_count
+            entry['neighbor_mean_rating'] = collab_mean.get(item,0)
+
         if item in rec_content:
-            score += dynamic_w['content'] * rec_content[item]
-            sources += 1
+            det = content_details[item]
+            entry.update({
+                'sim_score': det['sim_score'],
+                'hist_score':det['hist_score'],
+                'vis_score': det['vis_score']
+            })
+
         if item in rec_demo:
-            score += dynamic_w['demographic'] * rec_demo[item]
-            sources += 1
-        hybrid_scores[item] = score
-    
-    # Ordenar y retornar las top_n recomendaciones
-    hybrid_sorted = sorted(hybrid_scores.items(), key=lambda x: x[1], reverse=True)
-    return hybrid_sorted[:top_n]
+            ddet = demo_detail[item]
+            entry.update({
+                'demo_score': ddet['demo_score'],
+                'group':      ddet['group'],
+                'explanation':ddet['explanation']
+            })
+
+        hybrid_list.append(entry)
+
+    hybrid_list.sort(key=lambda x: x['hybrid_score'], reverse=True)
+    print(hybrid_list)
+    return hybrid_list[:top_n]
+

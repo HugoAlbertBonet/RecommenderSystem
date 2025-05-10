@@ -39,41 +39,51 @@ def compute_user_similarity(user_item_matrix, min_intersection=3):
             sim_matrix.loc[u2, u1] = sim
     return sim_matrix
 
-def get_collaborative_recommendations(user_item_matrix, sim_matrix, target_user, n_neighbors=20, min_threshold=0.7):
-    """
-    Obtiene recomendaciones colaborativas:
-      - Se buscan los vecinos (usuarios) similares que cumplan un umbral mínimo.
-      - Se acumulan scores para cada ítem (excluyendo los ya valorados por el usuario).
-      - Se devuelve un diccionario {id_item: score} y la cantidad total de vecinos utilizados.
-    """
-    neighbors = sim_matrix.loc[target_user].drop(target_user).dropna()
-    valid_neighbors = neighbors[neighbors >= min_threshold].sort_values(ascending=False)
-    top_neighbors = valid_neighbors.iloc[:n_neighbors]
-    
+# collaborative.py
+import pandas as pd
+import numpy as np
+from scipy.stats import pearsonr
+
+def get_collaborative_recommendations(user_item_matrix, sim_matrix, target_user,
+                                    n_neighbors=20, min_threshold=0.7):
+    # Obtener vecinos
+    sim_series = sim_matrix.loc[target_user].drop(target_user).dropna()
+    top_neighbors = sim_series[sim_series >= min_threshold].nlargest(n_neighbors)
+
     target_items = user_item_matrix.loc[target_user].dropna().index.tolist()
+
     rec_scores = {}
     rec_weights = {}
     neighbor_count = {}
-    
-    
+    neighbor_sum_ratings = {}
+
     for neighbor, sim in top_neighbors.items():
-        neighbor_ratings = user_item_matrix.loc[neighbor]
-        # Umbral dinámico: promedio de ratings del vecino
-        dynamic_threshold = neighbor_ratings.mean()
-        favorable_items = neighbor_ratings[neighbor_ratings > dynamic_threshold].dropna()
-        
-        for item, rating in favorable_items.items():
+        ratings = user_item_matrix.loc[neighbor]
+        threshold = ratings.mean()
+        favorable = ratings[ratings > threshold].dropna()
+        for item, rating in favorable.items():
             if item in target_items:
                 continue
             rec_scores[item] = rec_scores.get(item, 0) + sim * rating
             rec_weights[item] = rec_weights.get(item, 0) + abs(sim)
             neighbor_count[item] = neighbor_count.get(item, 0) + 1
-            
-    # Definir una escala para normalizar (score mínimo y máximo esperado)
+            neighbor_sum_ratings[item] = neighbor_sum_ratings.get(item, 0) + rating
+
+    # Normalizar scores
     min_ratio = 1
     max_ratio = 7 + np.log(n_neighbors + 1)
-    final_scores = {item: ((rec_scores[item] / rec_weights[item]) + np.log(1 + neighbor_count[item]) - min_ratio) / (max_ratio - min_ratio)
-                    for item in rec_scores if rec_weights[item] != 0}
-    
-    total_neighbors = len(top_neighbors)
-    return final_scores, len(final_scores)*(total_neighbors/n_neighbors)
+    final_scores = {}
+    for itm, score in rec_scores.items():
+        weight = rec_weights.get(itm, 0)
+        count = neighbor_count.get(itm, 0)
+        if weight == 0:
+            continue
+        raw = (score / weight) + np.log(1 + count)
+        final_scores[itm] = (raw - min_ratio) / (max_ratio - min_ratio)
+
+    # Calcular media de rating de vecinos
+    neighbor_mean = {itm: neighbor_sum_ratings[itm] / neighbor_count[itm]
+                     for itm in neighbor_sum_ratings}
+
+    # Devolver: scores normalizados, número de vecinos, medias
+    return final_scores, len(top_neighbors), neighbor_mean
