@@ -59,11 +59,11 @@ def get_demographic_recommendations(target_user,
         if grp not in grupos_preferencias.columns:
             return None, None
         vec = grupos_preferencias.T.loc[grp].values
-        print(grupos_preferencias.columns)
+        #print(grupos_preferencias.columns)
         return vec, grp
 
     vector, group = asignar_vector_y_grupo(target_user)
-    print(group, vector)
+    #print(group, vector)
     if vector is None:
         return []  # no asignado a ningún grupo
 

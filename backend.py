@@ -490,7 +490,7 @@ def get_group_recommendations():
         for item, score in raw_recommendations:
             # Se obtiene el nombre del ítem a partir de su id
             item_name = items_names.loc[items_names['id_item'] == item, 'name_item'].values[0]
-            recommendations.append({"name": item_name, "similarity": round(score, 4)})
+            recommendations.append({"name": item_name, "hybrid_score": round(score, 4)})
         return jsonify({"recommendations": recommendations})
     except Exception as e:
         print(e)

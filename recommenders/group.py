@@ -70,6 +70,7 @@ def group_hybrid_recommender_with_aggregation(user_ids,
                                               user_item_matrix, sim_matrix,
                                               usuarios_historico, items_names,
                                               preferencias, padres, items_clasificacion,
+                                              datos_personales, grupos_preferencias,
                                               base_weights={'collaborative': 0.33, 'content': 0.33, 'demographic': 0.34},
                                               bonus_factor=0.1,
                                               top_n=50):
@@ -80,11 +81,18 @@ def group_hybrid_recommender_with_aggregation(user_ids,
 
     for uid in user_ids:
         # Individual recommendations
-        rec_collab, _ = get_collaborative_recommendations(user_item_matrix, sim_matrix, uid)
-        rec_content, _ = get_content_recommendations(usuarios_historico, items_names,
+        if base_weights["collaborative"] > 0: rec_collab, _, _ = get_collaborative_recommendations(user_item_matrix, sim_matrix, uid)
+        else: rec_collab = {}
+        if base_weights["content"] > 0:
+            rec_content, _, _ = get_content_recommendations(usuarios_historico, items_names,
                                                      preferencias, padres, items_clasificacion,
                                                      uid, N=top_n * 2)
-        rec_demo, _ = get_demographic_recommendations(uid, N=top_n * 2)
+        else: rec_content = {}
+        if base_weights["demographic"] > 0:
+            demo_list = get_demographic_recommendations(uid, datos_personales, grupos_preferencias,
+            items_clasificacion, items_names, top_n=top_n * 2)
+            rec_demo    = {d['id_item']: d['demo_score'] for d in demo_list}
+        else: rec_demo = {}
 
         # Convert to list of tuples and truncate
         user_recs_by_type[uid] = {
