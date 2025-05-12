@@ -34,38 +34,6 @@ def aggregate_recommendations_by_type(user_recs_dict, group_seen_items, top_n=10
         #print(combined)
     return combined
 
-
-
-def aggregate_recommendations_by_type(user_recs_dict, group_seen_items, top_n=10):
-    combined = {'collaborative': {}, 'content': {}, 'demographic': {}}
-    user_ids = list(user_recs_dict.keys())
-
-    for rec_type in combined.keys():
-        all_scores = {}
-
-        # Recolectar scores por ítem
-        for uid in user_ids:
-            recs = user_recs_dict[uid].get(rec_type, [])
-            recommended_items = dict(recs)
-
-            for item in recommended_items:
-                if item in group_seen_items:
-                    continue
-                if item not in all_scores:
-                    all_scores[item] = {}
-                all_scores[item][uid] = recommended_items[item]
-
-        # Calcular media (llenando ceros donde falte)
-        scores_combined = {}
-        #print(all_scores)
-        for item, user_scores in all_scores.items():
-            full_scores = [user_scores.get(uid, 0.0) for uid in user_ids]
-            scores_combined[item] = np.mean(full_scores)
-        top_items = sorted(scores_combined.items(), key=lambda x: x[1], reverse=True)[:top_n]
-        combined[rec_type] = dict(top_items)
-        #print(combined)
-    return combined
-
 def group_hybrid_recommender_with_aggregation(user_ids,
                                               user_item_matrix, sim_matrix,
                                               usuarios_historico, items_names,
