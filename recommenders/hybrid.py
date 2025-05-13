@@ -33,7 +33,10 @@ def hybrid_recommender(
     datos_personales, grupos_preferencias,
     base_weights={'collaborative':0.33,'content':0.33,'demographic':0.34},
     top_n=10,
-    set_weights=None
+    set_weights=None,
+    content_alpha=0.33,
+   content_beta=0.33,
+   content_gamma=0.34
 ):
     
     if set_weights is not None:
@@ -50,7 +53,8 @@ def hybrid_recommender(
     if w['content'] > 0:
         rec_content, content_details, content_count = get_content_recommendations(
             usuarios_historico, items_names, preferencias, padres,
-            items_clasificacion, target_user, N=top_n
+            items_clasificacion, target_user, N=top_n, alpha = content_alpha,
+            beta = content_beta, gamma = content_gamma
         )
     else:
         rec_content, content_details, content_count = {}, {}, 0

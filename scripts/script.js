@@ -462,6 +462,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const typeCheckboxes = document.querySelectorAll('input[name="recommendationType"]:checked');
         const selectedTypes = Array.from(typeCheckboxes).map(checkbox => checkbox.value);
 
+        const alpha = parseFloat(document.getElementById('alphaInput').value) || 0;
+        const beta  = parseFloat(document.getElementById('betaInput').value)  || 0;
+        const gamma = parseFloat(document.getElementById('gammaInput').value) || 0;
+        // Validar que sumen 1
+        if (Math.abs((alpha + beta + gamma) - 1) > 0.001) {
+        alert('α + β + γ deben sumar 1.00');
+        return;
+        }
+
+
         console.log(`Fetching ${N} recommendations for user ${userId} (Types: ${selectedTypes.join(', ') || 'None'})`);
 
         if (selectedTypes.length === 0) {
@@ -480,9 +490,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    userId: userId,
-                    num_recommendations: N,
-                    recommendation_types: selectedTypes,
+                  userId: userId,
+                  num_recommendations: N,
+                  recommendation_types: selectedTypes,
+                  alpha: alpha,
+                  beta:  beta,
+                  gamma: gamma
                 }),
             });
 

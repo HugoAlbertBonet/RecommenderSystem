@@ -245,6 +245,13 @@ def get_recommendations():
         num_recommendations = data.get("num_recommendations")
         selectedTypes = data.get("recommendation_types", [])
 
+        alpha = float(data.get("alpha", 0.33))
+        beta  = float(data.get("beta",  0.33))
+        gamma = float(data.get("gamma", 0.34))
+        # (Opcional) validar que sumen 1
+        if abs((alpha + beta + gamma) - 1.0) > 1e-3:
+            return jsonify({"error": "alpha + beta + gamma deben sumar 1.00"}), 400
+
         print("Selected Types:", selectedTypes)
 
         if not isinstance(num_recommendations, int):
@@ -274,7 +281,10 @@ def get_recommendations():
             grupos_preferencias= grupos_preferencias,
             base_weights       = base_weights,
             top_n              = num_recommendations,
-            set_weights        = set_weights
+            set_weights        = set_weights,
+            content_alpha=          alpha,
+            content_beta=           beta,
+            content_gamma=          gamma
         )
 
         # Formatear salida
@@ -363,6 +373,12 @@ def evaluate():
         n        = int(d.get("num_recommendations", 10))
         thr_rec  = float(d.get("threshold_recommended", 4.0))
         thr_rel  = float(d.get("threshold_relevant",    4.0))
+        alpha = float(d.get("alpha", 0.33))
+        beta  = float(d.get("beta",  0.33))
+        gamma = float(d.get("gamma", 0.34))
+        # (Opcional) validar que sumen 1
+        if abs((alpha + beta + gamma) - 1.0) > 1e-3:
+            return jsonify({"error": "alpha + beta + gamma deben sumar 1.00"}), 400
     except Exception:
         return jsonify({"error": "Payload inválido"}), 400
 
@@ -403,7 +419,10 @@ def evaluate():
                 grupos_preferencias,
                 base_weights=weights,
                 top_n=200,
-                set_weights=set_w
+                set_weights=set_w,
+                content_alpha=          alpha,
+                content_beta=           beta,
+                content_gamma=          gamma
             )
             #  raw  ➜  [{'id_item': .., 'hybrid_score': .., ...}, ...]
 
